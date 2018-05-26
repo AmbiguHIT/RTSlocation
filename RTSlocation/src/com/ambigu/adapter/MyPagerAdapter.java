@@ -195,6 +195,7 @@ public class MyPagerAdapter extends PagerAdapter implements OnSharingMessageList
 		if ((view.getTag() + "").equals(3 + "")) {
 			initListener(view, info);
 			DiscardClientHandler.getInstance().setOnSharingMessageListener(this);
+			DiscardClientHandler.getInstance().setOnGetSelfLocationListener(this);
 		}
 		return view;
 	}
