@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F0F3F6"
+    android:orientation="vertical" >
+
+    <com.ambigu.view.CircleImageView
+        android:id="@+id/touxiang"
+        android:layout_width="100dip"
+        android:layout_height="100dip"
+        android:layout_gravity="center"
+        android:layout_margin="10dp" />
+
+    <LinearLayout style="@style/wrap_layout" >
+
+       
+        <!-- 无圆角 -->
+
+        <LinearLayout
+            android:id="@+id/myinfo"
+            style="@style/top_layout" >
+
+            <TextView
+                style="@style/usertext"
+                android:text="我的资料" />
+
+            <ImageView style="@style/img_arrow" />
+        </LinearLayout>
+
+        <View style="@style/bg_line" />
+
+        <LinearLayout
+            android:id="@+id/message"
+            style="@style/mid_layout" >
+
+            <TextView
+                style="@style/usertext"
+                android:text="共享历史" />
+
+            <ImageView style="@style/img_arrow" />
+        </LinearLayout>
+
+        <View style="@style/bg_line" />
+        
+        <LinearLayout
+            android:id="@+id/auth_history"
+            style="@style/mid_layout" >
+
+            <TextView
+                style="@style/usertext"
+                android:text="好友查看记录" />
+
+            <ImageView style="@style/img_arrow" />
+        </LinearLayout>
+
+        <View style="@style/bg_line" />
+        
+        <LinearLayout
+            android:id="@+id/driving_history"
+            style="@style/mid_layout" >
+
+            <TextView
+                style="@style/usertext"
+                android:text="权限共享记录" />
+
+            <ImageView style="@style/img_arrow" />
+        </LinearLayout>
+
+        <View style="@style/bg_line" />
+        <!-- 下圆角 -->
+
+        <LinearLayout
+            android:id="@+id/loginout"
+            style="@style/bottom_layout" >
+
+            <TextView
+                style="@style/usertext"
+                android:text="退出登录" />
+
+            <ImageView style="@style/img_arrow" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- 全圆角 -->
+
+    <LinearLayout style="@style/wrap_layout" >
+
+        <LinearLayout
+            android:id="@+id/settings"
+            style="@style/single_layout" >
+
+            <TextView
+                style="@style/usertext"
+                android:text="辅助设置" />
+
+            <ImageView style="@style/img_arrow" />
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>

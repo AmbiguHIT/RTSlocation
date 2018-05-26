@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout  xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+	
+	<com.baidu.mapapi.map.MapView  
+	    android:id="@+id/ed_drive_map"
+	    android:padding="2dp"  
+	    android:layout_width="fill_parent"  
+	    android:layout_height="fill_parent"  
+	    android:clickable="true" />
+	<RelativeLayout 
+	    android:padding="1dp"  
+	    android:layout_width="fill_parent"  
+	    android:layout_height="50dp" >
+		<Button
+		    android:id="@+id/ip_bt"
+		    android:layout_width="wrap_content"
+		    android:layout_height="match_parent"
+		    android:layout_alignParentBottom="true"
+		    android:layout_alignParentRight="true"
+		    android:layout_alignParentTop="true"
+		    android:paddingLeft="10dp"
+		    android:paddingRight="10dp"
+		    android:paddingTop="5dp"
+		    android:paddingBottom="5dp"
+		    android:text="发起共享" />
+		
+		<EditText
+		    android:id="@+id/ip_in"
+		    android:layout_width="match_parent"
+		    android:layout_height="match_parent"
+		    android:layout_toLeftOf="@+id/ip_bt"
+		    android:hint="请输入好友IP"
+		    android:layout_marginTop="5dp"
+		    android:layout_marginBottom="5dp"
+		    android:layout_marginRight="15dp"
+		    android:layout_marginLeft="15dp"
+		    android:textColor="@color/gray" />
+	    
+	</RelativeLayout>
+	  
+</FrameLayout>

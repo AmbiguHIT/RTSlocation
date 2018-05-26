@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F0F3F6"
+    android:orientation="vertical" >
+
+    <LinearLayout style="@style/wrap_layout" >
+
+        <!-- 上圆角 -->
+
+        <LinearLayout
+            android:id="@+id/geqian"
+            style="@style/top_layout" >
+
+            <TextView
+                android:layout_weight="0.07"
+                style="@style/usertext"
+                android:text="用户名：" />
+
+            <TextView
+                android:id="@+id/username"
+                style="@style/usertext"
+                android:text="" />
+        </LinearLayout>
+
+        <!-- 分割线 -->
+
+        <View style="@style/bg_line" />
+        <!-- 无圆角 -->
+
+        <View style="@style/bg_line" />
+
+        <LinearLayout style="@style/mid_layout" >
+
+            <TextView
+                android:layout_weight="0.07"
+                style="@style/usertext"
+                android:text="性  别：" />
+
+            <TextView
+                android:id="@+id/sex"
+                style="@style/usertext"
+                android:text="" />
+        </LinearLayout>
+
+        <View style="@style/bg_line" />
+
+        <LinearLayout style="@style/mid_layout" >
+
+            <TextView
+                android:layout_weight="0.07"
+                style="@style/usertext"
+                android:text="年  龄：" />
+
+            <TextView
+                android:id="@+id/age"
+                style="@style/usertext"
+                android:text="" />
+        </LinearLayout>
+
+        <View style="@style/bg_line" />
+
+        <LinearLayout style="@style/mid_layout" >
+
+            <TextView
+                style="@style/usertext"
+                android:layout_weight="0.07"
+                android:text="生  日：" />
+
+            <TextView
+                android:id="@+id/birthday"
+                style="@style/usertext"
+                android:text="" />
+        </LinearLayout>
+
+        <View style="@style/bg_line" />
+
+        <LinearLayout style="@style/mid_layout" >
+
+            <TextView
+                style="@style/usertext"
+                android:layout_weight="0.07"
+                android:text="E-mail：" />
+
+            <TextView
+                android:id="@+id/email"
+                style="@style/usertext"
+                android:text="" />
+        </LinearLayout>
+
+        <View style="@style/bg_line" />
+        <!-- 下圆角 -->
+
+        <LinearLayout style="@style/bottom_layout" >
+
+            <TextView
+                android:layout_weight="0.07"
+                style="@style/usertext"
+                android:text="地  址：" >
+            </TextView>
+
+            <TextView
+                android:id="@+id/adress"
+                style="@style/usertext"
+                android:text="" />
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>

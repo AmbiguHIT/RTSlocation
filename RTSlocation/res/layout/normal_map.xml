@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="1dp" >
+
+    <com.baidu.mapapi.map.MapView
+        android:id="@+id/sharing_map"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:clickable="true"
+        android:padding="2dp" >
+    </com.baidu.mapapi.map.MapView>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="80px" >
+
+        <TextView
+            android:id="@+id/sharingtv"
+            android:layout_width="217dp"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="当前正在与id共享"
+            android:textColor="@color/gray"
+            android:textSize="22sp" />
+
+        <Button
+            android:id="@+id/stopsharing"
+            style="@drawable/check_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="停止共享" 
+            android:layout_alignParentRight="true"/>
+
+    </RelativeLayout>
+</FrameLayout>

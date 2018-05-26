@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F0F3F6"
+    android:orientation="vertical" >
+
+    <LinearLayout
+        style="@style/wrap_layout"
+        android:clickable="false" >
+
+        <!-- 上圆角 -->
+
+        <RelativeLayout
+            android:id="@+id/geqian"
+            style="@style/top_layout" >
+
+            <TextView
+                style="@style/usertext"
+                android:text="允许好友实时查看位置" />
+
+            <Switch
+                android:id="@+id/switch_shareable"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:switchMinWidth="40dp"
+                android:switchPadding="10dp"
+                android:textOff="关"
+                android:textOn="开"
+                android:typeface="normal" />
+        </RelativeLayout>
+
+        <View style="@style/bg_line" />
+
+        <LinearLayout
+            android:id="@+id/invi"
+            style="@style/mid_layout"
+            android:visibility="gone" >
+
+            <TextView
+                style="@style/usertext"
+                android:text="管理授权好友" />
+
+            <ImageView style="@style/img_arrow" />
+        </LinearLayout>
+        
+        <LinearLayout
+            android:id="@+id/invi_pinlv"
+            style="@style/mid_layout"
+            android:visibility="gone" >
+
+            <TextView
+                style="@style/usertext"
+                android:layout_width="wrap_content"
+                android:text="授权位置更新频率" />
+
+            <TextView
+                android:id="@+id/invi_value"
+                style="@style/usertext"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:background="@drawable/shape_help_category_tv_bg"
+                android:drawableRight="@drawable/icon_down"
+                android:minWidth="100dp"
+                android:padding="5dp"
+                android:text="请选择频率"
+                android:textColor="@color/content_color" />
+        </LinearLayout>
+
+        <!-- 分割线 -->
+
+        <View style="@style/bg_line" />
+        <!-- 无圆角 -->
+
+        <RelativeLayout
+            android:id="@+id/myinfo"
+            style="@style/bottom_layout" >
+
+            <TextView
+                android:id="@+id/pinlv"
+                style="@style/usertext"
+                android:layout_width="wrap_content"
+                android:text="实时更新频率" />
+
+            <TextView
+                android:id="@+id/tv_value"
+                style="@style/usertext"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:background="@drawable/shape_help_category_tv_bg"
+                android:drawableRight="@drawable/icon_down"
+                android:minWidth="100dp"
+                android:padding="5dp"
+                android:text="请选择频率"
+                android:textColor="@color/content_color" />
+        </RelativeLayout>
+
+        <View style="@style/bg_line" />
+    </LinearLayout>
+
+</LinearLayout>

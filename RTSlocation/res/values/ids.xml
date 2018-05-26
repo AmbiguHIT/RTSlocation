@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item type="id" name="tag_holder">0</item>
+    <item type="id" name="tag_titile">1</item> 
+    <item type="id" name="tag_grouppositon">2</item>
+    <item type="id" name="tag_childpositon">3</item>
+    <item type="id" name="tag_authholder">4</item>
+    <item type="id" name="tag_authposition">5</item>
+</resources>

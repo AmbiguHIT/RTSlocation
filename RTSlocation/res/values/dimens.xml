@@ -1,0 +1,16 @@
+<resources>
+
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="view_small_padding">1dp</dimen>
+    <dimen name="view_padding">6dp</dimen>
+    <dimen name="dilog_identitychange_height">200dp</dimen>
+    <dimen name="dilog_identitychange_width">80dp</dimen>
+    <dimen name="alert_width">290dp</dimen>
+    <dimen name="common_circle_width">3dp</dimen>
+    <dimen name="progress_circle_radius">34dp</dimen>
+    <dimen name="during_setting_btn_height">30dp</dimen>
+    <dimen name="during_setting_btn_bottom_line_margin">17dp</dimen>
+    <dimen name="during_setting_btn_title_bottom_margin">16dp</dimen>
+    <dimen name="during_setting_btn_title_top_margin">12dp</dimen>
+
+</resources>
