@@ -111,6 +111,10 @@ public class DiscardClientHandler extends SimpleChannelInboundHandler<String> {
 		Log.e("连接", "连接失败");
 	}
 
+	public void setOnGetSelfLocationListener(OnGetSelfLocationListener onGetSelfLocationListener){
+		this.onGetSelfLocationListener=onGetSelfLocationListener;
+	}
+	
 	public void setLoginInterface(onLoginResult loginInterface) {
 		this.loginInterface = loginInterface;
 
