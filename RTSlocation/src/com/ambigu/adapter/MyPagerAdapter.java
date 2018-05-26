@@ -817,7 +817,12 @@ public class MyPagerAdapter extends PagerAdapter implements OnSharingMessageList
 	@Override
 	public void showSelfLocation(Info info) {
 		// TODO Auto-generated method stub
-		
+		Intent intent = new Intent(a, SharingHistoryActivity.class);
+		Bundle bundle = new Bundle();
+		Log.e("sharing", "sharing");
+		bundle.putSerializable("info", info);
+		intent.putExtras(bundle);
+		a.startActivity(intent);
 	}
 
 	
