@@ -15,6 +15,7 @@ import com.ambigu.drive.SharingOptions;
 import com.ambigu.listener.MyOrientationListener;
 import com.ambigu.listener.OnSharingMessageListener;
 import com.ambigu.listener.MyOrientationListener.OnOrientationListener;
+import com.ambigu.listener.OnAuthNoteListener;
 import com.ambigu.listener.OnGetSelfLocationListener;
 import com.ambigu.model.DrivingScheme;
 import com.ambigu.model.Group;
@@ -24,6 +25,7 @@ import com.ambigu.model.Settings_Type;
 import com.ambigu.model.User;
 import com.ambigu.route.RouteSimulate;
 import com.ambigu.rtslocation.AcquireAuthLatlngActivity;
+import com.ambigu.rtslocation.AuthInfoActivity;
 import com.ambigu.rtslocation.LoginActivity;
 import com.ambigu.rtslocation.MessageActivity;
 import com.ambigu.rtslocation.MyLocationHistoryActivity;
@@ -115,7 +117,8 @@ import android.widget.Toast;
  * @author
  * @version
  */
-public class MyPagerAdapter extends PagerAdapter implements OnSharingMessageListener, OnGetGeoCoderResultListener,OnGetSelfLocationListener {
+public class MyPagerAdapter extends PagerAdapter implements OnSharingMessageListener, OnGetGeoCoderResultListener,
+OnGetSelfLocationListener,OnAuthNoteListener {
 
 	private List<View> views = new ArrayList<View>();
 	private Activity a;
@@ -197,6 +200,7 @@ public class MyPagerAdapter extends PagerAdapter implements OnSharingMessageList
 			initListener(view, info);
 			DiscardClientHandler.getInstance().setOnSharingMessageListener(this);
 			DiscardClientHandler.getInstance().setOnGetSelfLocationListener(this);
+			DiscardClientHandler.getInstance().setOnAuthNoteListener(this);
 		}
 		return view;
 	}
@@ -412,7 +416,7 @@ public class MyPagerAdapter extends PagerAdapter implements OnSharingMessageList
 			}
 		});
 		
-		auth_history.setOnClickListener(new OnClickListener() {
+		driving_history.setOnClickListener(new OnClickListener() {
 			
 			@Override
 			public void onClick(View v) {
@@ -421,6 +425,19 @@ public class MyPagerAdapter extends PagerAdapter implements OnSharingMessageList
 				Info info = new Info();
 				info.setFromUser(ApplicationVar.getId());
 				info.setInfoType(EnumInfoType.GET_SELF_AUTH_LATLNG);
+				RTSClient.writeAndFlush(info);
+			}
+		});
+		
+		auth_history.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				// 发送请求共享历史信息
+				Info info = new Info();
+				info.setFromUser(ApplicationVar.getId());
+				info.setInfoType(EnumInfoType.GET_AUTH_NOTE);
 				RTSClient.writeAndFlush(info);
 			}
 		});
@@ -829,6 +846,17 @@ public class MyPagerAdapter extends PagerAdapter implements OnSharingMessageList
 	
 	public interface OnGetNaviDataListener{
 		void dorouteplanToNavi(LatLng st,LatLng ed);
+	}
+
+	@Override
+	public void getAuthNote(Info info) {
+		// TODO Auto-generated method stub
+		Intent intent = new Intent(a, AuthInfoActivity.class);
+		Bundle bundle = new Bundle();
+		Log.e("sharing", "sharing");
+		bundle.putSerializable("info", info);
+		intent.putExtras(bundle);
+		a.startActivity(intent);
 	}
 
 }

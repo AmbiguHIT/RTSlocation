@@ -61,7 +61,7 @@ public class Info implements Serializable {
 	private DrivingScheme driving;
 	
 	//权限共享
-	private ArrayList<AuthNode> authNodes;
+	private HashMap<String,ArrayList<AuthNode>> authNodes;
 
 	public float getAccuracy() {
 		return accuracy;
@@ -352,12 +352,11 @@ public class Info implements Serializable {
 		return driving;
 	}
 
-	public ArrayList<AuthNode> getAuthNodes() {
+	public HashMap<String,ArrayList<AuthNode>> getAuthNodes() {
 		return authNodes;
 	}
 
-	public void setAuthNodes(ArrayList<AuthNode> authNodes) {
+	public void setAuthNodes(HashMap<String,ArrayList<AuthNode>> authNodes) {
 		this.authNodes = authNodes;
 	}
-
 }
