@@ -22,6 +22,7 @@ import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
 
 public class SharingHistoryActivity extends Activity {
@@ -90,9 +91,10 @@ public class SharingHistoryActivity extends Activity {
 				
 				//生成距离
 				double dis=0.0;
-				for(int k=0;k<points.size();k++){
-					if(points.get(k).getDistance()==null) dis+=0.0;
-					else dis+=Double.parseDouble(points.get(k).getDistance());
+				if(points.size()!=0){
+					String diss=points.get(points.size()-1).getDistance();
+					if(diss!=null)dis=Double.parseDouble(diss);
+					else dis=0;
 				}
 				singleSharingHistoryInfo.setDistance(Double.toString(dis));
 				
@@ -113,10 +115,10 @@ public class SharingHistoryActivity extends Activity {
 		adapter=new SharingHistoryAdapter(sharingHistorys, this, sharinglist);
 		sharinglist.setAdapter(adapter);
 		
-		sharinglist.setOnItemLongClickListener(new OnItemLongClickListener() {
+		sharinglist.setOnItemClickListener(new OnItemClickListener() {
 
 			@Override
-			public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				// TODO Auto-generated method stub
 				int groupposition=Integer.parseInt(""+view.getTag(R.id.tag_grouppositon));
 				int childposition=Integer.parseInt(""+view.getTag(R.id.tag_childpositon));
@@ -126,9 +128,17 @@ public class SharingHistoryActivity extends Activity {
 				bundle.putSerializable("mapinfo", singleSharingHistoryInfo);
 				intent.putExtras(bundle);
 				startActivity(intent);
+			}
+		});
+		
+		sharinglist.setOnItemLongClickListener(new OnItemLongClickListener() {
+
+			@Override
+			public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+				// TODO Auto-generated method stub
+				
 				return true;
 			}
-			
 		});
 	}
 

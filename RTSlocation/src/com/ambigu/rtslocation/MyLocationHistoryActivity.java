@@ -4,8 +4,12 @@ import java.util.ArrayList;
 
 import com.ambigu.adapter.SwipeLocationHistoryAdapter;
 import com.ambigu.model.Info;
+import com.ambigu.model.Point;
 import com.ambigu.model.ShareMessage;
 import com.ambigu.model.ShareMessageOfPerson;
+import com.ambigu.model.SingleSharingHistoryInfo;
+import com.ambigu.settings.HistoryMap;
+import com.ambigu.settings.SharingHistoryActivity;
 import com.ambigu.view.SwipeListView;
 import com.google.gson.Gson;
 
@@ -53,14 +57,6 @@ public class MyLocationHistoryActivity extends Activity {
 		adapter=new SwipeLocationHistoryAdapter(shareMessages, MyLocationHistoryActivity.this);
 		swipeListView.setAdapter(adapter);
 		
-		swipeListView.setOnItemClickListener(new OnItemClickListener() {
-
-			@Override
-			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				// TODO Auto-generated method stub
-				
-			}
-		});
 	}
 
 	@Override

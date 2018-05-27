@@ -4,9 +4,15 @@ import java.util.ArrayList;
 
 import com.ambigu.model.Point;
 import com.ambigu.model.ShareMessage;
+import com.ambigu.model.SingleSharingHistoryInfo;
+import com.ambigu.rtslocation.MyLocationHistoryActivity;
 import com.ambigu.rtslocation.R;
+import com.ambigu.settings.HistoryMap;
 
 import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -45,7 +51,7 @@ public class SwipeLocationHistoryAdapter extends BaseAdapter {
 	}
 
 	@Override
-	public View getView(int position, View convertView, ViewGroup parent) {
+	public View getView(final int position, View convertView, ViewGroup parent) {
 		// TODO Auto-generated method stub
 		if(getCount()!=0){
 			if(convertView==null){
@@ -57,6 +63,7 @@ public class SwipeLocationHistoryAdapter extends BaseAdapter {
 				holder.end_time=(TextView)convertView.findViewById(R.id.stop_time);
 				holder.start_time=(TextView)convertView.findViewById(R.id.start_time);
 				convertView.setTag(R.id.tag_holder, holder);
+				convertView.setTag(R.id.tag_childpositon,position);
 			}
 			ShareMessage shareMessage=shareMessages.get(position);
 			ArrayList<Point> points=shareMessage.getLatlngList();
@@ -72,7 +79,30 @@ public class SwipeLocationHistoryAdapter extends BaseAdapter {
 				@Override
 				public void onClick(View v) {
 					// TODO Auto-generated method stub
-					
+					SingleSharingHistoryInfo singleSharingHistoryInfo=new SingleSharingHistoryInfo();
+					ShareMessage shareMessage=shareMessages.get(position);
+					singleSharingHistoryInfo.setFromUser(shareMessage.getFromUser());
+					singleSharingHistoryInfo.setToUser(shareMessage.getToUser());
+					singleSharingHistoryInfo.setStart_point(shareMessage.getStart_point());
+					singleSharingHistoryInfo.setEnd_point(shareMessage.getEnd_point());
+					singleSharingHistoryInfo.setStart_time(shareMessage.getStart_time());
+					singleSharingHistoryInfo.setEnd_time(shareMessage.getEnd_time());
+					ArrayList<Point> points=shareMessage.getLatlngList();
+					singleSharingHistoryInfo.setLatlngList(points);
+					//生成距离
+					double dis=0.0;
+					if(points.size()!=0){
+						String diss=points.get(points.size()-1).getDistance();
+						if(diss!=null) dis=Double.parseDouble(diss);
+						else dis=0;
+					}
+					singleSharingHistoryInfo.setDistance(Double.toString(dis));
+					Intent intent =new Intent(context,HistoryMap.class);
+					Bundle bundle=new Bundle();
+					bundle.putSerializable("mapinfo", singleSharingHistoryInfo);
+					intent.putExtras(bundle);
+					context.startActivity(intent);
+					Log.e("tag","doclick");
 				}
 			});
 			

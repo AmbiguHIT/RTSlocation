@@ -23,10 +23,17 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.TextView;
 
 public class HistoryMap extends Activity {
 
 	private MapView mapView = null;
+	private TextView start_time;
+	private TextView stop_time;
+	private TextView start_point;
+	private TextView end_point;
+	private TextView distance;
+	private SingleSharingHistoryInfo sharingHistoryInfo;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -41,7 +48,7 @@ public class HistoryMap extends Activity {
 	private void initData() {
 		// TODO Auto-generated method stub
 		Intent intent = this.getIntent();
-		SingleSharingHistoryInfo sharingHistoryInfo = (SingleSharingHistoryInfo) intent.getExtras().get("mapinfo");
+		sharingHistoryInfo = (SingleSharingHistoryInfo) intent.getExtras().get("mapinfo");
 		ArrayList<Point> latlngList = sharingHistoryInfo.getLatlngList();
 		initView(latlngList);
 	}
@@ -49,6 +56,17 @@ public class HistoryMap extends Activity {
 	private void initView(ArrayList<Point> latlngList) {
 		// TODO Auto-generated method stub
 		mapView = (MapView) findViewById(R.id.history_map);
+		start_time=(TextView)findViewById(R.id.start_time);
+		stop_time=(TextView)findViewById(R.id.stop_time);
+		start_point=(TextView)findViewById(R.id.start_point);
+		end_point=(TextView)findViewById(R.id.end_point);
+		distance=(TextView)findViewById(R.id.distance);
+		start_time.setText(sharingHistoryInfo.getStart_time());
+		stop_time.setText(sharingHistoryInfo.getEnd_time());
+		start_point.setText(sharingHistoryInfo.getStart_point());
+		end_point.setText(sharingHistoryInfo.getEnd_point());
+		distance.setText(sharingHistoryInfo.getDistance());
+		
 		BaiduMap mBaiduMap = mapView.getMap();
 		LatLng firlatLng = null;
 		boolean f = true;

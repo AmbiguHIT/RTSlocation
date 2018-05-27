@@ -16,7 +16,7 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:paddingLeft="10dp"
-            android:paddingTop="2dip"
+            android:gravity="center_vertical"
             android:textColor="#000000"
             android:textSize="16sp" />
 
@@ -34,7 +34,7 @@
             android:layout_height="match_parent"
             android:layout_toRightOf="@+id/double_jt"
             android:paddingLeft="10dp"
-            android:paddingTop="2dip"
+            android:gravity="center_vertical"
             android:textColor="#000000"
             android:textSize="16sp" />
     </RelativeLayout>
@@ -64,6 +64,7 @@
                 android:layout_height="match_parent"
                 android:layout_toRightOf="@+id/qidian"
                 android:paddingLeft="10dp"
+            	android:gravity="center_vertical"
                 android:textColor="#000000"
                 android:textSize="16sp" />
         </RelativeLayout>
@@ -87,6 +88,7 @@
                 android:layout_height="match_parent"
                 android:layout_toRightOf="@+id/zhongdian"
                 android:paddingLeft="10dp"
+            	android:gravity="center_vertical"
                 android:textColor="#000000"
                 android:textSize="16sp" />
         </RelativeLayout>
@@ -110,6 +112,7 @@
                 android:layout_height="match_parent"
                 android:layout_toRightOf="@+id/juli"
                 android:paddingLeft="10dp"
+            	android:gravity="center_vertical"
                 android:textColor="#000000"
                 android:textSize="16sp" />
         </RelativeLayout>

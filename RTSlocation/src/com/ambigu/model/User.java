@@ -103,5 +103,4 @@ public class User implements Serializable {
 	public void setChoose(boolean isChoose) {
 		this.isChoose = isChoose;
 	}
-
 }

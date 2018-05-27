@@ -61,7 +61,7 @@ public class Info implements Serializable {
 	private DrivingScheme driving;
 	
 	//权限共享
-	
+	private ArrayList<AuthNode> authNodes;
 
 	public float getAccuracy() {
 		return accuracy;
@@ -350,6 +350,14 @@ public class Info implements Serializable {
 	public DrivingScheme getDrivingScheme() {
 		// TODO Auto-generated method stub
 		return driving;
+	}
+
+	public ArrayList<AuthNode> getAuthNodes() {
+		return authNodes;
+	}
+
+	public void setAuthNodes(ArrayList<AuthNode> authNodes) {
+		this.authNodes = authNodes;
 	}
 
 }
