@@ -96,6 +96,7 @@ public class DiscardClientHandler extends SimpleChannelInboundHandler<String> {
 			onAcquireAuthLatLngListener.OnAcquireAuthLatLng(reqInfo);
 			break;
 		case GET_SELF_AUTH_LATLNG:
+			Log.e("回复信息", msg);
 			onGetSelfLocationListener.showSelfLocation(reqInfo);
 			break;
 		default:

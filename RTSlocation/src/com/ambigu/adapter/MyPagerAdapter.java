@@ -26,6 +26,7 @@ import com.ambigu.route.RouteSimulate;
 import com.ambigu.rtslocation.AcquireAuthLatlngActivity;
 import com.ambigu.rtslocation.LoginActivity;
 import com.ambigu.rtslocation.MessageActivity;
+import com.ambigu.rtslocation.MyLocationHistoryActivity;
 import com.ambigu.rtslocation.R;
 import com.ambigu.rtslocation.SharingActivity;
 import com.ambigu.rtslocation.SharingActivity.MapReceiver;
@@ -817,7 +818,7 @@ public class MyPagerAdapter extends PagerAdapter implements OnSharingMessageList
 	@Override
 	public void showSelfLocation(Info info) {
 		// TODO Auto-generated method stub
-		Intent intent = new Intent(a, SharingHistoryActivity.class);
+		Intent intent = new Intent(a, MyLocationHistoryActivity.class);
 		Bundle bundle = new Bundle();
 		Log.e("sharing", "sharing");
 		bundle.putSerializable("info", info);

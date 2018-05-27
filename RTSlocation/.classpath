@@ -2,16 +2,17 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="gen"/>
-	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
+	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
-	<classpathentry kind="lib" path="lib/android-support-v4.jar"/>
-	<classpathentry kind="lib" path="lib/BaiduLBS_Android.jar"/>
-	<classpathentry kind="lib" path="lib/BaiduNaviSDK_3.3.0.jar"/>
-	<classpathentry kind="lib" path="lib/GifView.jar"/>
-	<classpathentry kind="lib" path="lib/gson-2.7.jar"/>
-	<classpathentry kind="lib" path="lib/httpmime-4.1.2.jar"/>
-	<classpathentry kind="lib" path="lib/IndoorscapeAlbumPlugin.jar"/>
-	<classpathentry kind="lib" path="lib/netty-all-4.0.23.Final.jar"/>
+	<classpathentry kind="lib" path="libs/android-support-v4.jar"/>
+	<classpathentry kind="lib" path="libs/BaiduLBS_Android.jar"/>
+	<classpathentry kind="lib" path="libs/BaiduNaviSDK_3.3.0.jar"/>
+	<classpathentry kind="lib" path="libs/com.baidu.tts_2.3.0.jar"/>
+	<classpathentry kind="lib" path="libs/GifView.jar"/>
+	<classpathentry kind="lib" path="libs/gson-2.7.jar"/>
+	<classpathentry kind="lib" path="libs/httpmime-4.1.2.jar"/>
+	<classpathentry kind="lib" path="libs/IndoorscapeAlbumPlugin.jar"/>
+	<classpathentry kind="lib" path="libs/netty-all-4.0.23.Final.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>
