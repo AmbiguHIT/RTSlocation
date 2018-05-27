@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="80dip"
+    android:background="@drawable/selector_expandable_child_item" >
+
+    <RelativeLayout
+        android:id="@+id/top"
+        android:layout_width="match_parent"
+        android:layout_height="40dip" >
+
+        
+
+        <TextView
+            android:id="@+id/start_time"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:paddingLeft="10dp"
+            android:paddingTop="10dip"
+            android:textColor="#000000"
+            android:textSize="16sp" />
+
+        <ImageView
+            android:id="@+id/double_jt"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_toRightOf="@+id/start_time"
+            android:paddingLeft="10dp"
+            android:src="@drawable/double_jiantou" />
+
+        <TextView
+            android:id="@+id/stop_time"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_toRightOf="@+id/double_jt"
+            android:paddingLeft="10dp"
+            android:paddingTop="10dip"
+            android:textColor="#000000"
+            android:textSize="16sp" />
+    </RelativeLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="40dip"
+        android:layout_below="@+id/top"
+        android:weightSum="3" >
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dip"
+            android:layout_weight="1" >
+
+            <ImageView
+                android:id="@+id/qidian"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_alignParentLeft="true"
+                android:paddingLeft="10dp"
+                android:src="@drawable/start_point" />
+
+            <TextView
+                android:id="@+id/start_point"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_toRightOf="@+id/qidian"
+                android:paddingLeft="10dp"
+                android:paddingTop="10dip"
+                android:textColor="#000000"
+                android:textSize="16sp" />
+        </RelativeLayout>
+        
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dip"
+            android:layout_weight="1" >
+
+            <ImageView
+                android:id="@+id/zhongdian"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_alignParentLeft="true"
+                android:paddingLeft="10dp"
+                android:src="@drawable/end_point" />
+
+            <TextView
+                android:id="@+id/end_point"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_toRightOf="@+id/zhongdian"
+                android:paddingLeft="10dp"
+                android:paddingTop="10dip"
+                android:textColor="#000000"
+                android:textSize="16sp" />
+        </RelativeLayout>
+        
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dip"
+            android:layout_weight="1" >
+
+            <ImageView
+                android:id="@+id/juli"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_alignParentLeft="true"
+                android:paddingLeft="10dp"
+                android:src="@drawable/distance" />
+
+            <TextView
+                android:id="@+id/distance"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_toRightOf="@+id/juli"
+                android:paddingLeft="10dp"
+                android:paddingTop="10dip"
+                android:textColor="#000000"
+                android:textSize="16sp" />
+        </RelativeLayout>
+    </LinearLayout>
+
+</RelativeLayout>
