@@ -15,7 +15,7 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 
 public class RTSClient {
-	static final String HOST = "10.240.44.29";
+	static final String HOST = "192.168.137.1";
 	static final int PORT = 8992;
 	static Channel ch = null;
 	static EventLoopGroup clientGroup = null;

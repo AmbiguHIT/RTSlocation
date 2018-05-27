@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import com.ambigu.client.DiscardClientHandler;
 import com.ambigu.client.RTSClient;
 import com.ambigu.listener.OnDelAuthInfoListener;
 import com.ambigu.model.AuthNode;
@@ -21,6 +22,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -44,6 +47,7 @@ public class AuthInfoAdapter extends BaseExpandableListAdapter implements Header
 	private Button sure, cancel;
 	private boolean isMulChoice = false;
 	private boolean isAllowOption = true;
+	private Handler handler=null;
 
 	public AuthInfoAdapter(HashMap<String, ArrayList<AuthNode>> childNodes, ArrayList<String> groups, Context context,
 			Button sure, Button cancel) {
@@ -56,6 +60,77 @@ public class AuthInfoAdapter extends BaseExpandableListAdapter implements Header
 		// isVisable=new ArrayList<HashMap<Integer, Boolean>>();
 		this.isChecked = new ArrayList<HashMap<Integer, Boolean>>();
 		initView();
+		initHandler();
+	}
+
+	private void initHandler() {
+		// TODO Auto-generated method stub
+		handler=new Handler(){
+			@Override
+			public void handleMessage(Message msg) {
+				// TODO Auto-generated method stub
+				super.handleMessage(msg);
+				Info info=(Info)msg.obj;
+				if (info.isState()) {// 成功
+					AlertDialog.Builder builder = new Builder(context);
+					// 设置对话框图标，可以使用自己的图片，Android本身也提供了一些图标供我们使用
+					builder.setIcon(R.drawable.ic_launcher);
+					// 设置对话框标题
+					builder.setTitle("提示信息");
+					// 设置对话框内的文本
+					builder.setMessage("删除成功！");
+					// 设置确定按钮，并给按钮设置一个点击侦听，注意这个OnClickListener使用的是DialogInterface类里的一个内部接口
+					builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							dialog.dismiss();
+							for (int i = 0; i < groups.size(); i++) {// 分组
+								String groupname = groups.get(i);
+								HashMap<Integer, Boolean> maps = isChecked.get(i);
+								Iterator<Map.Entry<Integer, Boolean>> iterator = maps.entrySet().iterator();
+								while (iterator.hasNext()) {
+									Map.Entry<Integer, Boolean> entry = iterator.next();
+									if (entry.getValue()) {// 此项被选中
+										int childpos = entry.getKey();
+										childNodes.get(groupname).remove(childNodes.get(groupname).get(childpos));
+									}
+									if(childNodes.get(groupname).size()==0){
+										groups.remove(groupname);
+										break;
+									}
+								}
+							}
+							isAllowOption = true;// 恢复操作
+							notifyDataSetChanged();// 此时不应再进行操作
+						}
+					});
+					// 使用builder创建出对话框对象
+					AlertDialog dialog = builder.create();
+					// 显示对话框
+					dialog.show();
+				} else {
+					AlertDialog.Builder builder = new Builder(context);
+					// 设置对话框图标，可以使用自己的图片，Android本身也提供了一些图标供我们使用
+					builder.setIcon(R.drawable.ic_launcher);
+					// 设置对话框标题
+					builder.setTitle("提示信息");
+					// 设置对话框内的文本
+					builder.setMessage("删除失败！");
+					// 设置确定按钮，并给按钮设置一个点击侦听，注意这个OnClickListener使用的是DialogInterface类里的一个内部接口
+					builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							dialog.dismiss();
+							isAllowOption = true;// 恢复操作
+						}
+					});
+					// 使用builder创建出对话框对象
+					AlertDialog dialog = builder.create();
+					// 显示对话框
+					dialog.show();
+				}
+			}
+		};
 	}
 
 	private void initView() {
@@ -137,6 +212,7 @@ public class AuthInfoAdapter extends BaseExpandableListAdapter implements Header
 			}
 		});
 
+		DiscardClientHandler.getInstance().setOnDelAuthInfoListener(this);
 	}
 
 	@Override
@@ -231,7 +307,7 @@ public class AuthInfoAdapter extends BaseExpandableListAdapter implements Header
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
-				if (isMulChoice) {
+				if (isMulChoice&&isAllowOption) {
 					boolean ischecked = isChecked.get(groupPosition).get(childPosition);
 					isChecked.get(groupPosition).put(childPosition, !ischecked);
 					checkBox.setChecked(!ischecked);
@@ -245,7 +321,7 @@ public class AuthInfoAdapter extends BaseExpandableListAdapter implements Header
 			@Override
 			public boolean onLongClick(View v) {
 				// TODO Auto-generated method stub
-				if (!isMulChoice) {
+				if (!isMulChoice&&isAllowOption) {
 					isMulChoice = true;
 					Log.e("很好", "点击了");
 					for (int i = 0; i < groups.size(); i++) {
@@ -299,61 +375,10 @@ public class AuthInfoAdapter extends BaseExpandableListAdapter implements Header
 	@Override
 	public void delAuthInfoState(Info info) {
 		// TODO Auto-generated method stub
-		// 这里将会清除数据
-		if (info.isState()) {// 成功
-			AlertDialog.Builder builder = new Builder(context);
-			// 设置对话框图标，可以使用自己的图片，Android本身也提供了一些图标供我们使用
-			builder.setIcon(R.drawable.ic_launcher);
-			// 设置对话框标题
-			builder.setTitle("提示信息");
-			// 设置对话框内的文本
-			builder.setMessage("确定删除这些记录吗？");
-			// 设置确定按钮，并给按钮设置一个点击侦听，注意这个OnClickListener使用的是DialogInterface类里的一个内部接口
-			builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					dialog.dismiss();
-					for (int i = 0; i < groups.size(); i++) {// 分组
-						String groupname = groups.get(i);
-						HashMap<Integer, Boolean> maps = isChecked.get(i);
-						Iterator<Map.Entry<Integer, Boolean>> iterator = maps.entrySet().iterator();
-						while (iterator.hasNext()) {
-							Map.Entry<Integer, Boolean> entry = iterator.next();
-							if (entry.getValue()) {// 此项被选中
-								int childpos = entry.getKey();
-								childNodes.get(groupname).remove(childNodes.get(groupname).get(childpos));
-							}
-						}
-					}
-					isAllowOption = true;// 恢复操作
-					notifyDataSetChanged();// 此时不应再进行操作
-				}
-			});
-			// 使用builder创建出对话框对象
-			AlertDialog dialog = builder.create();
-			// 显示对话框
-			dialog.show();
-		} else {
-			AlertDialog.Builder builder = new Builder(context);
-			// 设置对话框图标，可以使用自己的图片，Android本身也提供了一些图标供我们使用
-			builder.setIcon(R.drawable.ic_launcher);
-			// 设置对话框标题
-			builder.setTitle("提示信息");
-			// 设置对话框内的文本
-			builder.setMessage("删除失败！");
-			// 设置确定按钮，并给按钮设置一个点击侦听，注意这个OnClickListener使用的是DialogInterface类里的一个内部接口
-			builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					dialog.dismiss();
-					isAllowOption = true;// 恢复操作
-				}
-			});
-			// 使用builder创建出对话框对象
-			AlertDialog dialog = builder.create();
-			// 显示对话框
-			dialog.show();
-		}
+		// 这里将会清除数据]
+		Message message=Message.obtain();
+		message.obj=info;
+		handler.sendMessage(message);
 	}
 
 }
