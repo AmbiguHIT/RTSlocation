@@ -6,6 +6,8 @@ import com.ambigu.listener.OnAuthChangedListener;
 import com.ambigu.listener.OnAuthNoteListener;
 import com.ambigu.listener.OnDelAuthInfoListener;
 import com.ambigu.listener.OnDeleteFriendListener;
+import com.ambigu.listener.OnDeleteLocationMessageListener;
+import com.ambigu.listener.OnDeleteSharingHistory;
 import com.ambigu.listener.OnGetSelfLocationListener;
 import com.ambigu.listener.OnMessageListener;
 import com.ambigu.listener.OnMessageSendState;
@@ -40,6 +42,8 @@ public class DiscardClientHandler extends SimpleChannelInboundHandler<String> {
 	private OnAuthNoteListener onAuthNoteListener;
 	private OnDelAuthInfoListener onDelAuthInfoListener;
 	private OnDeleteFriendListener onDeleteFriendListener;
+	private OnDeleteSharingHistory onDeleteSharingHistory;
+	private OnDeleteLocationMessageListener onDeleteLocationMessageListener;
 
 	private DiscardClientHandler() {
 		// TODO Auto-generated constructor stub
@@ -114,6 +118,12 @@ public class DiscardClientHandler extends SimpleChannelInboundHandler<String> {
 		case DEL_FRIEND:
 			onDeleteFriendListener.deleteFriendState(reqInfo);
 			break;
+		case DEL_SHARING_MES:
+			onDeleteSharingHistory.deleteHistory(reqInfo);
+			break;
+		case DEL_LOCATION_MES:
+			onDeleteLocationMessageListener.deleteLocation(reqInfo);
+			break;
 		default:
 			break;
 		}
@@ -125,6 +135,14 @@ public class DiscardClientHandler extends SimpleChannelInboundHandler<String> {
 		// TODO Auto-generated method stub
 		cause.printStackTrace();
 		Log.e("连接", "连接失败");
+	}
+	
+	public void setOnDeleteLocationMessageListener(OnDeleteLocationMessageListener onDeleteLocationMessageListener){
+		this.onDeleteLocationMessageListener=onDeleteLocationMessageListener;
+	}
+	
+	public void setOnDeleteSharingHistory(OnDeleteSharingHistory onDeleteSharingHistory){
+		this.onDeleteSharingHistory=onDeleteSharingHistory;
 	}
 	
 	public void setOnDeleteFriendListener(OnDeleteFriendListener onDeleteFriendListener){

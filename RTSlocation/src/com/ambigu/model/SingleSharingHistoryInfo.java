@@ -16,6 +16,7 @@ public class SingleSharingHistoryInfo implements Serializable{
 	private String start_point;
 	private String end_point;
 	private String distance;
+	private boolean isFromMe;
 	private ArrayList<Point> latlngList;
 	public String getIcon() {
 		return icon;
@@ -70,6 +71,12 @@ public class SingleSharingHistoryInfo implements Serializable{
 	}
 	public void setLatlngList(ArrayList<Point> latlngList) {
 		this.latlngList = latlngList;
+	}
+	public boolean isFromMe() {
+		return isFromMe;
+	}
+	public void setFromMe(boolean isFromMe) {
+		this.isFromMe = isFromMe;
 	}
 	
 }

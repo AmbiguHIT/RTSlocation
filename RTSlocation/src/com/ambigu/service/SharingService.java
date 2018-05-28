@@ -301,6 +301,19 @@ public class SharingService extends Service implements SensorEventListener, OnMe
 	}
 
 	@Override
+	public void onTaskRemoved(Intent rootIntent) {
+		// TODO Auto-generated method stub
+		Info info=new Info();
+		info.setInfoType(EnumInfoType.LOGIN_OUT);
+		info.setFromUser(ApplicationVar.getId());
+		info.setState(false);
+		RTSClient.writeAndFlush(info);
+		Log.e("kill_Process","true");
+		android.os.Process.killProcess(android.os.Process.myPid()); 
+		super.onTaskRemoved(rootIntent);
+	}
+
+	@Override
 	public void onDestroy() {
 		// TODO Auto-generated method stub
 		mSensorManager.unregisterListener(this);

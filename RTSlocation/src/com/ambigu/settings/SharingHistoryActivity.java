@@ -10,6 +10,7 @@ import com.ambigu.model.ShareMessageOfPerson;
 import com.ambigu.model.SharingHistoryOfPerson;
 import com.ambigu.model.SingleSharingHistoryInfo;
 import com.ambigu.rtslocation.R;
+import com.ambigu.util.ApplicationVar;
 import com.ambigu.view.PinnedHeaderExpandableListView;
 import com.baidu.mapapi.model.LatLng;
 
@@ -74,6 +75,7 @@ public class SharingHistoryActivity extends Activity {
 			SharingHistoryOfPerson sharingHistoryOfPerson=new SharingHistoryOfPerson();
 			sharingHistoryOfPerson.setFromUser(shareMessageOfPerson.getFromUser());
 			sharingHistoryOfPerson.setToUser(shareMessageOfPerson.getToUser());
+			
 			Log.e("ToUser",shareMessageOfPerson.getToUser());
 			ArrayList<ShareMessage> shareMessages =shareMessageOfPerson.getShareMessages();
 			ArrayList<SingleSharingHistoryInfo> singleSharingHistoryInfos=new ArrayList<SingleSharingHistoryInfo>();
@@ -88,7 +90,9 @@ public class SharingHistoryActivity extends Activity {
 				singleSharingHistoryInfo.setEnd_time(shareMessage.getEnd_time());
 				ArrayList<Point> points=shareMessage.getLatlngList();
 				singleSharingHistoryInfo.setLatlngList(points);
-				
+				if(shareMessage.getFromUser().equals(ApplicationVar.getId()))
+					singleSharingHistoryInfo.setFromMe(true);
+				else singleSharingHistoryInfo.setFromMe(false);
 				//生成距离
 				double dis=0.0;
 				if(points.size()!=0){

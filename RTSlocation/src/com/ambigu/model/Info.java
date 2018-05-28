@@ -48,6 +48,25 @@ public class Info implements Serializable {
 	private ArrayList<ShareMessageOfPerson> shareMessageOfPersons;// 好友聊天记录
 	private boolean isfirst;
 	private boolean isend;
+	private int groupPos;
+	private int childPos;
+	private boolean isFromMe=false;
+
+	public int getGroupPos() {
+		return groupPos;
+	}
+
+	public void setGroupPos(int groupPos) {
+		this.groupPos = groupPos;
+	}
+
+	public int getChildPos() {
+		return childPos;
+	}
+
+	public void setChildPos(int childPos) {
+		this.childPos = childPos;
+	}
 
 	// 驾驶信息
 	private double speed;// 速度
@@ -358,5 +377,13 @@ public class Info implements Serializable {
 
 	public void setAuthNodes(HashMap<String,ArrayList<AuthNode>> authNodes) {
 		this.authNodes = authNodes;
+	}
+
+	public boolean isFromMe() {
+		return isFromMe;
+	}
+
+	public void setFromMe(boolean isFromMe) {
+		this.isFromMe = isFromMe;
 	}
 }

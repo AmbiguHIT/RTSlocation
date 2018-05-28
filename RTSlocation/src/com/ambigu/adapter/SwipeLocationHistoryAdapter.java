@@ -2,34 +2,104 @@ package com.ambigu.adapter;
 
 import java.util.ArrayList;
 
+import com.ambigu.client.DiscardClientHandler;
+import com.ambigu.client.RTSClient;
+import com.ambigu.listener.OnDeleteLocationMessageListener;
+import com.ambigu.model.Info;
 import com.ambigu.model.Point;
 import com.ambigu.model.ShareMessage;
+import com.ambigu.model.ShareMessageOfPerson;
+import com.ambigu.model.SharingHistoryOfPerson;
 import com.ambigu.model.SingleSharingHistoryInfo;
 import com.ambigu.rtslocation.MyLocationHistoryActivity;
 import com.ambigu.rtslocation.R;
 import com.ambigu.settings.HistoryMap;
+import com.ambigu.util.EnumInfoType;
+import com.baidu.location.a.h;
 
+import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-public class SwipeLocationHistoryAdapter extends BaseAdapter {
+public class SwipeLocationHistoryAdapter extends BaseAdapter implements OnDeleteLocationMessageListener {
 
 	private ArrayList<ShareMessage> shareMessages;
 	private Context context;
 	private ViewHolder holder;
+	private Handler handler;
 	
 	public SwipeLocationHistoryAdapter(ArrayList<ShareMessage> shareMessages,Context context) {
 		// TODO Auto-generated constructor stub
 		this.shareMessages=shareMessages;
 		this.context=context;
+		initHandler();
+		DiscardClientHandler.getInstance().setOnDeleteLocationMessageListener(this);
+	}
+
+	private void initHandler() {
+		// TODO Auto-generated method stub
+		handler=new Handler(){
+			@Override
+			public void handleMessage(Message msg) {
+				// TODO Auto-generated method stub
+				super.handleMessage(msg);
+				final Info info=(Info)msg.obj;
+				if(info.isState()){//删除成功
+					AlertDialog.Builder builder = new Builder(context);
+					// 设置对话框图标，可以使用自己的图片，Android本身也提供了一些图标供我们使用
+					builder.setIcon(R.drawable.ic_launcher);
+					// 设置对话框标题
+					builder.setTitle("提示信息");
+					// 设置对话框内的文本
+					builder.setMessage("删除成功！");
+					// 设置确定按钮，并给按钮设置一个点击侦听，注意这个OnClickListener使用的是DialogInterface类里的一个内部接口
+					builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							int childPos=info.getChildPos();
+							shareMessages.remove(childPos);
+							notifyDataSetChanged();
+						}
+					});
+					// 使用builder创建出对话框对象
+					AlertDialog dialog = builder.create();
+					// 显示对话框
+					dialog.show();
+				}else{
+					AlertDialog.Builder builder = new Builder(context);
+					// 设置对话框图标，可以使用自己的图片，Android本身也提供了一些图标供我们使用
+					builder.setIcon(R.drawable.ic_launcher);
+					// 设置对话框标题
+					builder.setTitle("提示信息");
+					// 设置对话框内的文本
+					builder.setMessage("删除失败！");
+					// 设置确定按钮，并给按钮设置一个点击侦听，注意这个OnClickListener使用的是DialogInterface类里的一个内部接口
+					builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							
+						}
+					});
+					// 使用builder创建出对话框对象
+					AlertDialog dialog = builder.create();
+					// 显示对话框
+					dialog.show();
+				}
+			}
+		};
 	}
 
 	@Override
@@ -106,9 +176,89 @@ public class SwipeLocationHistoryAdapter extends BaseAdapter {
 				}
 			});
 			
+			convertView.setOnLongClickListener(new OnLongClickListener() {
+				
+				@Override
+				public boolean onLongClick(View v) {
+					// TODO Auto-generated method stub
+					final String items[] = { "打开", "删除"};
+					AlertDialog dialog = new AlertDialog.Builder(context).setIcon(R.drawable.qq_icon)// 设置标题的图片
+							.setTitle("操作")// 设置对话框的标题
+							.setItems(items, new DialogInterface.OnClickListener() {
+								@Override
+								public void onClick(DialogInterface dialog, int which) {
+									switch (which) {
+									case 0:
+										SingleSharingHistoryInfo singleSharingHistoryInfo=new SingleSharingHistoryInfo();
+										ShareMessage shareMessage=shareMessages.get(position);
+										singleSharingHistoryInfo.setFromUser(shareMessage.getFromUser());
+										singleSharingHistoryInfo.setToUser(shareMessage.getToUser());
+										singleSharingHistoryInfo.setStart_point(shareMessage.getStart_point());
+										singleSharingHistoryInfo.setEnd_point(shareMessage.getEnd_point());
+										singleSharingHistoryInfo.setStart_time(shareMessage.getStart_time());
+										singleSharingHistoryInfo.setEnd_time(shareMessage.getEnd_time());
+										ArrayList<Point> points=shareMessage.getLatlngList();
+										singleSharingHistoryInfo.setLatlngList(points);
+										//生成距离
+										double dis=0.0;
+										if(points.size()!=0){
+											String diss=points.get(points.size()-1).getDistance();
+											if(diss!=null) dis=Double.parseDouble(diss);
+											else dis=0;
+										}
+										singleSharingHistoryInfo.setDistance(Double.toString(dis));
+										Intent intent =new Intent(context,HistoryMap.class);
+										Bundle bundle=new Bundle();
+										bundle.putSerializable("mapinfo", singleSharingHistoryInfo);
+										intent.putExtras(bundle);
+										context.startActivity(intent);
+										Log.e("tag","doclick");
+										break;
+									case 1:
+										deleteLocationHistory(position);
+										break;
+									default:
+										break;
+									}
+								}
+							}).setNegativeButton("取消", new DialogInterface.OnClickListener() {
+								@Override
+								public void onClick(DialogInterface dialog, int which) {
+									dialog.dismiss();
+								}
+							}).setPositiveButton("确定", new DialogInterface.OnClickListener() {
+								@Override
+								public void onClick(DialogInterface dialog, int which) {
+									dialog.dismiss();
+								}
+							}).create();
+					dialog.show();
+					return true;
+				}
+			});
+			
 		}
 		
 		return convertView;
+	}
+	
+
+	private void deleteLocationHistory(int position) {
+		// TODO Auto-generated method stub
+		ShareMessage shareMessage=shareMessages.get(position);
+		Info info=new Info();
+		info.setFromUser(shareMessage.getFromUser());
+		info.setInfoType(EnumInfoType.DEL_LOCATION_MES);
+		info.setState(false);
+		info.setChildPos(position);
+		ShareMessageOfPerson shareMessageOfPerson=new ShareMessageOfPerson();
+		ArrayList<ShareMessage> shareMessages=new ArrayList<ShareMessage>();
+		shareMessages.add(shareMessage);
+		shareMessageOfPerson.setShareMessages(shareMessages);
+		ArrayList<ShareMessageOfPerson> shareMessageOfPersons=new ArrayList<ShareMessageOfPerson>();
+		shareMessageOfPersons.add(shareMessageOfPerson);
+		info.setShareMessageOfPersons(shareMessageOfPersons);
+		RTSClient.writeAndFlush(info);		
 	}
 
 	private class ViewHolder{
@@ -118,5 +268,13 @@ public class SwipeLocationHistoryAdapter extends BaseAdapter {
 		public TextView end_point;
 		public TextView distance;
 		
+	}
+
+	@Override
+	public void deleteLocation(Info info) {
+		// TODO Auto-generated method stub
+		Message message=Message.obtain();
+		message.obj=info;
+		handler.sendMessage(message);
 	}
 }

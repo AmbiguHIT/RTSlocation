@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="libs/gson-2.7.jar"/>
+	<classpathentry kind="lib" path="libs/json-lib-2.4-jdk15.jar"/>
+	<classpathentry kind="lib" path="libs/mysql-connector-java-5.1.7-bin.jar"/>
+	<classpathentry kind="lib" path="libs/netty-all-4.0.23.Final.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
