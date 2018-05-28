@@ -6,4 +6,6 @@
     <item type="id" name="tag_childpositon">3</item>
     <item type="id" name="tag_authholder">4</item>
     <item type="id" name="tag_authposition">5</item>
+    <item type="id" name="tag_child">6</item>
+    <item type="id" name="tag_group">7</item>
 </resources>

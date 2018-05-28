@@ -59,14 +59,18 @@ public class PinnedHeaderExpandableAdapter extends BaseExpandableListAdapter imp
 		}
 		//设置tag
 		view.setTag(R.id.tag_titile, childrenData.get(groupPosition).get(childPosition));
+		view.setTag(R.id.tag_group, groupData.get(groupPosition));
+		view.setTag(R.id.tag_child, childrenData.get(groupPosition).get(childPosition));
 		
 		ImageView img=(ImageView)view.findViewById(R.id.groupIcon);
 		TextView text = (TextView) view.findViewById(R.id.childto);
 		text.setText(childrenData.get(groupPosition).get(childPosition));
 		//缓存并显示
-		FileUtils.base64ToFile(childrenImg.get(groupPosition).get(childPosition), 
-				context.getCacheDir().getAbsolutePath()+"//"+ApplicationVar.getId()+"//Icon"
-						+"//"+childrenData.get(groupPosition).get(childPosition)+".png");
+		if(childrenImg.get(groupPosition).get(childPosition)!=null){
+			FileUtils.base64ToFile(childrenImg.get(groupPosition).get(childPosition), 
+					context.getCacheDir().getAbsolutePath()+"//"+ApplicationVar.getId()+"//Icon"
+							+"//"+childrenData.get(groupPosition).get(childPosition)+".png");
+		}
 		Drawable bitmap=BitmapDrawable.createFromPath(context.getCacheDir().getAbsolutePath()+"//"+ApplicationVar.getId()
 		+"//Icon"+"//"+childrenData.get(groupPosition).get(childPosition)+".png");
 		img.setBackground(bitmap);

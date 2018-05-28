@@ -8,9 +8,11 @@ import java.util.concurrent.Semaphore;
 
 import com.ambigu.adapter.MyPagerAdapter;
 import com.ambigu.adapter.MyPagerAdapter.OnGetNaviDataListener;
+import com.ambigu.client.DiscardClientHandler;
 import com.ambigu.client.RTSClient;
 import com.ambigu.drive.DriveActivity;
 import com.ambigu.listener.OnAddFriendListener;
+import com.ambigu.listener.OnDeleteFriendListener;
 import com.ambigu.model.Group;
 import com.ambigu.model.Info;
 import com.ambigu.model.User;
@@ -32,11 +34,15 @@ import com.baidu.navisdk.adapter.BaiduNaviManager.RoutePlanListener;
 import com.google.gson.Gson;
 
 import android.Manifest;
+import android.R.integer;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.app.AlertDialog.Builder;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -285,25 +291,8 @@ public class MainActivity extends Activity implements OnClickListener, OnGetNavi
 		if (requestCode == 1 && data != null) {
 			Bundle bundle = data.getExtras();
 			Info info = (Info) bundle.get("info");
-			Log.e("add", info.getFromUser());
-			Toast.makeText(this, "hello", Toast.LENGTH_LONG).show();
-			HashMap<String, Group> friends = adapterinfo.getFriendsList();
-			User user = new User();
-			user.setUserid(info.getToUser());
-			user.setFriend(info.getFromUser());
-			user.setIcon(info.getIcon());
-			Group group = friends.get(info.getGroup());
-			if (group == null) {
-				group = new Group();
-				group.setGroupname(info.getGroup());
-				ArrayList<User> items = new ArrayList<User>();
-				items.add(user);
-				group.setItems(items);
-				friends.put(info.getGroup(), group);
-			} else {
-				group.getItems().add(user);
-			}
-			adapter.notifyDataSetChanged();
+			adapter.addFriend(info);
+			
 		}
 	}
 
@@ -649,5 +638,7 @@ public class MainActivity extends Activity implements OnClickListener, OnGetNavi
 		}
 
 	}
+	
+	
 
 }

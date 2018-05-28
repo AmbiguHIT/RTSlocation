@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.Semaphore;
 
 import com.ambigu.client.DiscardClientHandler;
@@ -18,11 +20,13 @@ import com.ambigu.model.DrivingScheme;
 import com.ambigu.model.Group;
 import com.ambigu.model.Info;
 import com.ambigu.model.MessageOfPerson;
+import com.ambigu.model.ReqScheme;
 import com.ambigu.model.User;
 import com.ambigu.route.RouteSimulate;
 import com.ambigu.rtslocation.AcquireAuthLatlngActivity;
 import com.ambigu.rtslocation.AuthInfoActivity;
 import com.ambigu.rtslocation.LoginActivity;
+import com.ambigu.rtslocation.MainActivity;
 import com.ambigu.rtslocation.MessageActivity;
 import com.ambigu.rtslocation.MyLocationHistoryActivity;
 import com.ambigu.rtslocation.R;
@@ -54,7 +58,9 @@ import com.baidu.mapapi.search.geocode.GeoCodeResult;
 import com.baidu.mapapi.search.geocode.GeoCoder;
 import com.baidu.mapapi.search.geocode.OnGetGeoCoderResultListener;
 import com.baidu.mapapi.search.geocode.ReverseGeoCodeResult;
+import com.baidu.panosdk.plugin.indoor.R.string;
 
+import android.R.integer;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -100,7 +106,7 @@ import android.widget.Toast;
  * @version
  */
 public class MyPagerAdapter extends PagerAdapter implements OnSharingMessageListener, OnGetGeoCoderResultListener,
-OnGetSelfLocationListener,OnAuthNoteListener,OnDeleteFriendListener {
+		OnGetSelfLocationListener, OnAuthNoteListener, OnDeleteFriendListener {
 
 	private List<View> views = new ArrayList<View>();
 	private Activity a;
@@ -114,7 +120,7 @@ OnGetSelfLocationListener,OnAuthNoteListener,OnDeleteFriendListener {
 	private PinnedHeaderExpandableAdapter adapter;
 	private volatile static Semaphore msgSemaphore = new Semaphore(1);
 	private static Handler msgHandler = null;
-	private Info info;
+	private Info adapterinfo;
 	private SwipeAdapter mAdapter;
 	private ImageButton sharing_ib;
 	private BitmapDescriptor mIconLocation;
@@ -137,80 +143,18 @@ OnGetSelfLocationListener,OnAuthNoteListener,OnDeleteFriendListener {
 	private static LatLng startLatLng;
 	private OnGetNaviDataListener onGetNaviDataListener;
 	private Handler handler;
+	private Timer mTimer;
+	private TimerTask mTimerTask;
 
-	public MyPagerAdapter(List<View> views, Activity a, ViewPager viewPager, Info info) {
+	public MyPagerAdapter(List<View> views, Activity a, ViewPager viewPager, Info adapterinfo) {
 		super();
 		this.views = views;
 		this.a = a;
-		this.info = info;
-		this.onGetNaviDataListener=(OnGetNaviDataListener)a;
+		this.adapterinfo = adapterinfo;
+		this.onGetNaviDataListener = (OnGetNaviDataListener) a;
 		initHandler();
-	}
 
-	private void initHandler() {
-		// TODO Auto-generated method stub
-		handler=new Handler(){
-			@Override
-			public void handleMessage(Message msg) {
-				// TODO Auto-generated method stub
-				super.handleMessage(msg);
-				final Info info=(Info) msg.obj;
-				if(info.isState()){
-					AlertDialog.Builder builder = new Builder(a);
-					// 设置对话框图标，可以使用自己的图片，Android本身也提供了一些图标供我们使用
-					builder.setIcon(R.drawable.ic_launcher);
-					// 设置对话框标题
-					builder.setTitle("提示信息");
-					// 设置对话框内的文本
-					builder.setMessage("删除成功！");
-					// 设置确定按钮，并给按钮设置一个点击侦听，注意这个OnClickListener使用的是DialogInterface类里的一个内部接口
-					builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-							dialog.dismiss();
-							String delid= info.getFromUser();
-							//查找该ID
-							for(int i=0;i<groupData.size();i++){
-								for(int j=0;j<childrenData.get(i).size();j++){
-									String id=childrenData.get(i).get(j);
-									if(id.equals(delid)){
-										childrenData.get(i).remove(j);
-									}
-									if(childrenData.get(i).size()==0){
-										childrenData.remove(i);
-										groupData.remove(i);
-									}
-								}
-							}
-							notifyDataSetChanged();// 此时不应再进行操作
-						}
-					});
-					// 使用builder创建出对话框对象
-					AlertDialog dialog = builder.create();
-					// 显示对话框
-					dialog.show();
-				}else{
-					AlertDialog.Builder builder = new Builder(a);
-					// 设置对话框图标，可以使用自己的图片，Android本身也提供了一些图标供我们使用
-					builder.setIcon(R.drawable.ic_launcher);
-					// 设置对话框标题
-					builder.setTitle("提示信息");
-					// 设置对话框内的文本
-					builder.setMessage("删除失败！");
-					// 设置确定按钮，并给按钮设置一个点击侦听，注意这个OnClickListener使用的是DialogInterface类里的一个内部接口
-					builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-							dialog.dismiss();
-						}
-					});
-					// 使用builder创建出对话框对象
-					AlertDialog dialog = builder.create();
-					// 显示对话框
-					dialog.show();
-				}
-			}
-		};
+		DiscardClientHandler.getInstance().setOnDeleteFriendListener(this);
 	}
 
 	@Override
@@ -233,16 +177,16 @@ OnGetSelfLocationListener,OnAuthNoteListener,OnDeleteFriendListener {
 		View view = views.get(position);
 		container.addView(view);
 		if ((view.getTag() + "").equals(1 + "")) {
-			initData(view, info);
+			initData(view, adapterinfo);
 		}
 		if ((view.getTag() + "").equals(0 + "")) {
 			initView0(view);
 		}
 		if ((view.getTag() + "").equals(2 + "")) {
-			initData1(view, info);
+			initData1(view, adapterinfo);
 		}
 		if ((view.getTag() + "").equals(3 + "")) {
-			initListener(view, info);
+			initListener(view, adapterinfo);
 			DiscardClientHandler.getInstance().setOnSharingMessageListener(this);
 			DiscardClientHandler.getInstance().setOnGetSelfLocationListener(this);
 			DiscardClientHandler.getInstance().setOnAuthNoteListener(this);
@@ -261,7 +205,7 @@ OnGetSelfLocationListener,OnAuthNoteListener,OnDeleteFriendListener {
 		// 开启定位图层
 		mBaiduMap.setMyLocationEnabled(true);
 		sharing_ib.setOnTouchListener(new OnTouchListener() {
-			
+
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 				// TODO Auto-generated method stub
@@ -286,8 +230,8 @@ OnGetSelfLocationListener,OnAuthNoteListener,OnDeleteFriendListener {
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
-				//发起共享
-				
+				// 发起共享
+
 			}
 		});
 
@@ -312,21 +256,21 @@ OnGetSelfLocationListener,OnAuthNoteListener,OnDeleteFriendListener {
 				return false;
 			}
 		});
-		
+
 		//
-		ImageButton center=(ImageButton)view.findViewById(R.id.mylocation);
+		ImageButton center = (ImageButton) view.findViewById(R.id.mylocation);
 		center.setOnClickListener(new OnClickListener() {
-			
+
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
 				centerToMyLocation();
 			}
 		});
-		
-		following=(ImageButton)view.findViewById(R.id.follwing);
+
+		following = (ImageButton) view.findViewById(R.id.follwing);
 		following.setOnTouchListener(new OnTouchListener() {
-			
+
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 				// TODO Auto-generated method stub
@@ -344,9 +288,9 @@ OnGetSelfLocationListener,OnAuthNoteListener,OnDeleteFriendListener {
 				return false;
 			}
 		});
-		
+
 		following.setOnClickListener(new OnClickListener() {
-			
+
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
@@ -357,14 +301,12 @@ OnGetSelfLocationListener,OnAuthNoteListener,OnDeleteFriendListener {
 		// 定位到当前位置
 		// 初始化图标
 		initReceiver();
-		
 
 		start_descriptor = BitmapDescriptorFactory.fromResource(R.drawable.start_point);
 		end_descriptor = BitmapDescriptorFactory.fromResource(R.drawable.end_point);
 		start_marker = new MarkerOptions();
 		end_marker = new MarkerOptions();
 	}
-	
 
 	private void initReceiver() {
 		// TODO Auto-generated method stub
@@ -460,9 +402,9 @@ OnGetSelfLocationListener,OnAuthNoteListener,OnDeleteFriendListener {
 				a.startActivity(intent);
 			}
 		});
-		
+
 		driving_history.setOnClickListener(new OnClickListener() {
-			
+
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
@@ -473,9 +415,9 @@ OnGetSelfLocationListener,OnAuthNoteListener,OnDeleteFriendListener {
 				RTSClient.writeAndFlush(info);
 			}
 		});
-		
+
 		auth_history.setOnClickListener(new OnClickListener() {
-			
+
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
@@ -516,7 +458,7 @@ OnGetSelfLocationListener,OnAuthNoteListener,OnDeleteFriendListener {
 			@Override
 			public boolean onItemLongClick(AdapterView<?> parent, final View view, final int position, long id) {
 				// TODO Auto-generated method stub
-				final String items[] = { "打开", "删除", "查看其位置", "发起共享"  };
+				final String items[] = { "打开", "删除", "查看其位置", "发起共享" };
 				AlertDialog dialog = new AlertDialog.Builder(a).setIcon(R.drawable.qq_icon)// 设置标题的图片
 						.setTitle("操作")// 设置对话框的标题
 						.setItems(items, new DialogInterface.OnClickListener() {
@@ -526,7 +468,7 @@ OnGetSelfLocationListener,OnAuthNoteListener,OnDeleteFriendListener {
 								case 0:
 									Bundle bundle = new Bundle();
 									bundle.putString("name", view.getTag() + "");
-									bundle.putSerializable("info", info);
+									bundle.putSerializable("info", adapterinfo);
 									// bundle.putSerializable("viewpager",
 									// (Serializable) viewPager);
 									Intent intent = new Intent(a, MessageActivity.class);
@@ -534,8 +476,8 @@ OnGetSelfLocationListener,OnAuthNoteListener,OnDeleteFriendListener {
 									a.startActivity(intent);
 									break;
 								case 1:
-									//view.setVisibility(View.GONE);
-									deleteFriend(view.getTag()+"");
+									// view.setVisibility(View.GONE);
+									deleteFriend(view.getTag(R.id.tag_child) + "", view.getTag(R.id.tag_group) + "");
 									break;
 								case 2:
 									String title = (String) view.getTag(R.id.tag_titile);
@@ -545,8 +487,8 @@ OnGetSelfLocationListener,OnAuthNoteListener,OnDeleteFriendListener {
 									intent2.putExtras(bundle);
 									a.startActivity(intent2);
 									break;
-								case 3://实时共享
-									realTimeSharing((String)view.getTag(R.id.tag_titile));
+								case 3:// 实时共享
+									realTimeSharing((String) view.getTag(R.id.tag_titile));
 									break;
 
 								default:
@@ -554,7 +496,6 @@ OnGetSelfLocationListener,OnAuthNoteListener,OnDeleteFriendListener {
 								}
 							}
 
-							
 						}).setNegativeButton("取消", new DialogInterface.OnClickListener() {
 							@Override
 							public void onClick(DialogInterface dialog, int which) {
@@ -603,7 +544,7 @@ OnGetSelfLocationListener,OnAuthNoteListener,OnDeleteFriendListener {
 			childrenData.add(childlist);
 			childrenImg.add(imglist);
 		}
-		initView1(view);
+		if(view!=null)initView1(view);
 
 		// 设置单个分组展开
 		// explistview.setOnGroupClickListener(new GroupClickListener());
@@ -664,7 +605,7 @@ OnGetSelfLocationListener,OnAuthNoteListener,OnDeleteFriendListener {
 								case 0:
 									Bundle bundle = new Bundle();
 									bundle.putString("name", (String) view.getTag(R.id.tag_titile));
-									bundle.putSerializable("info", info);
+									bundle.putSerializable("info", adapterinfo);
 									Intent intent = new Intent(a, MessageActivity.class);
 									intent.putExtras(bundle);
 									a.startActivity(intent);
@@ -715,10 +656,21 @@ OnGetSelfLocationListener,OnAuthNoteListener,OnDeleteFriendListener {
 			}
 		});
 	}
-	
-	private void realTimeSharing(String tag) {//开启实时共享
+
+	private void realTimeSharing(String tag) {// 开启实时共享
 		// TODO Auto-generated method stub
-		
+		Info info = new Info();
+		info.setFromUser(ApplicationVar.getId());
+		info.setToUser(tag);
+		info.setInfoType(EnumInfoType.SHARING_REQ);
+		info.setReqScheme(ReqScheme.SHARE_PARTY);
+		info.setfirst(true);
+		// 发送广播
+		Intent broadCastIntent = new Intent("com.ambigu.rtslocation.RealTimeSharing");
+		Bundle broadCastBundle = new Bundle();
+		broadCastBundle.putSerializable("info", info);
+		broadCastIntent.putExtra("info", broadCastBundle);
+		a.sendBroadcast(broadCastIntent);
 	}
 
 	class GroupClickListener implements OnGroupClickListener {
@@ -744,31 +696,33 @@ OnGetSelfLocationListener,OnAuthNoteListener,OnDeleteFriendListener {
 			return true;
 		}
 	}
-	private void deleteFriend(final String delid) {
+
+	private void deleteFriend(final String delid, final String delgroup) {
 		// TODO Auto-generated method stub
-		//弹出提示
+		// 弹出提示
 		AlertDialog.Builder builder = new Builder(a);
 		// 设置对话框图标，可以使用自己的图片，Android本身也提供了一些图标供我们使用
 		builder.setIcon(R.drawable.ic_launcher);
 		// 设置对话框标题
 		builder.setTitle("提示信息");
 		// 设置对话框内的文本
-		builder.setMessage("删除成功！");
+		builder.setMessage("确定删除吗？");
 		// 设置确定按钮，并给按钮设置一个点击侦听，注意这个OnClickListener使用的是DialogInterface类里的一个内部接口
 		builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				dialog.dismiss();
-				Info info=new Info();
+				Info info = new Info();
 				info.setFromUser(ApplicationVar.getId());
 				info.setToUser(delid);
+				info.setGroup(delgroup);
 				info.setState(false);
 				info.setInfoType(EnumInfoType.DEL_FRIEND);
 				RTSClient.writeAndFlush(info);
 			}
 		});
 		builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
-			
+
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				// TODO Auto-generated method stub
@@ -807,10 +761,10 @@ OnGetSelfLocationListener,OnAuthNoteListener,OnDeleteFriendListener {
 			mBaiduMap.setMyLocationData(locData);
 			mBaiduMap.setMyLocationConfigeration(new MyLocationConfiguration(
 					com.baidu.mapapi.map.MyLocationConfiguration.LocationMode.NORMAL, true, mIconLocation));
-			
+
 			if (isFirstLoc) {
 				isFirstLoc = false;
-				startLatLng=mylocation;
+				startLatLng = mylocation;
 				LatLng ll = new LatLng(info.getLat(), info.getLng());
 				MapStatus.Builder builder = new MapStatus.Builder();
 				builder.target(ll).zoom(18.0f);
@@ -823,9 +777,9 @@ OnGetSelfLocationListener,OnAuthNoteListener,OnDeleteFriendListener {
 
 	private void addLine(LatLng old, LatLng neww) {
 		mBaiduMap.clear();
-		
+
 		synchronized (mBaiduMap) {
-			RouteSimulate rs = new RouteSimulate(a, old, neww,false);
+			RouteSimulate rs = new RouteSimulate(a, old, neww, false);
 			rs.init(mMapView, DrivingScheme.DRIVING);
 			rs.doClick(DrivingScheme.DRIVING);
 			start_marker.position(old).icon(start_descriptor);
@@ -834,19 +788,19 @@ OnGetSelfLocationListener,OnAuthNoteListener,OnDeleteFriendListener {
 			mBaiduMap.addOverlay(end_marker);
 		}
 
-//		MapStatus.Builder builder = new MapStatus.Builder();
-//		builder.target(old).zoom(18.0f);
-//		mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newMapStatus(builder.build()));
-		
+		// MapStatus.Builder builder = new MapStatus.Builder();
+		// builder.target(old).zoom(18.0f);
+		// mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newMapStatus(builder.build()));
+
 		centerToMyLocation();
 	}
-	
-	public void centerToMyLocation(){
+
+	public void centerToMyLocation() {
 		MapStatus.Builder builder = new MapStatus.Builder();
 		builder.target(mylocation).zoom(18.0f);
 		mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newMapStatus(builder.build()));
 	}
-	
+
 	@SuppressLint("NewApi")
 	@Override
 	public void onGetGeoCodeResult(GeoCodeResult result) {
@@ -862,9 +816,9 @@ OnGetSelfLocationListener,OnAuthNoteListener,OnDeleteFriendListener {
 			Button button = (Button) view.findViewById(R.id.btn_enter);
 			tView.setText(result.getAddress());
 
-			//记录终点
-			endLatLng=result.getLocation();
-			
+			// 记录终点
+			endLatLng = result.getLocation();
+
 			// 将View转换为BitmapDescriptor
 			BitmapDescriptor descriptor = BitmapDescriptorFactory.fromView(view);
 			marker.title("点击发起导航");
@@ -874,38 +828,38 @@ OnGetSelfLocationListener,OnAuthNoteListener,OnDeleteFriendListener {
 			mBaiduMap.setMapStatus(msu);
 			mBaiduMap.addOverlay(marker);
 			mBaiduMap.setOnMarkerClickListener(new OnMarkerClickListener() {
-				
+
 				@Override
 				public boolean onMarkerClick(final Marker marker) {
 					// TODO Auto-generated method stub
-					if(dialog==null||!dialog.isShowing()){
+					if (dialog == null || !dialog.isShowing()) {
 						builder = new Builder(a);
-						//设置对话框图标，可以使用自己的图片，Android本身也提供了一些图标供我们使用
+						// 设置对话框图标，可以使用自己的图片，Android本身也提供了一些图标供我们使用
 						builder.setIcon(R.drawable.ic_launcher);
-						//设置对话框标题
+						// 设置对话框标题
 						builder.setTitle("提示信息");
-						//设置对话框内的文本
+						// 设置对话框内的文本
 						builder.setMessage("确定要到这儿去吗？");
-						//设置确定按钮，并给按钮设置一个点击侦听，注意这个OnClickListener使用的是DialogInterface类里的一个内部接口
+						// 设置确定按钮，并给按钮设置一个点击侦听，注意这个OnClickListener使用的是DialogInterface类里的一个内部接口
 						builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
-						        @Override
-						        public void onClick(DialogInterface dialog, int which) {
-						           //发起路线规划
-						        	mBaiduMap.clear();
-						        	addLine(mylocation,marker.getPosition());
-						        	following.setVisibility(View.VISIBLE);
-						        }
+							@Override
+							public void onClick(DialogInterface dialog, int which) {
+								// 发起路线规划
+								mBaiduMap.clear();
+								addLine(mylocation, marker.getPosition());
+								following.setVisibility(View.VISIBLE);
+							}
 						});
-						
-						//使用builder创建出对话框对象
+
+						// 使用builder创建出对话框对象
 						dialog = builder.create();
-						//显示对话框
+						// 显示对话框
 						dialog.show();
 					}
 					return true;
 				}
 			});
-			
+
 			mMapView.invalidate();
 
 		}
@@ -928,9 +882,8 @@ OnGetSelfLocationListener,OnAuthNoteListener,OnDeleteFriendListener {
 		a.startActivity(intent);
 	}
 
-	
-	public interface OnGetNaviDataListener{
-		void dorouteplanToNavi(LatLng st,LatLng ed);
+	public interface OnGetNaviDataListener {
+		void dorouteplanToNavi(LatLng st, LatLng ed);
 	}
 
 	@Override
@@ -944,12 +897,125 @@ OnGetSelfLocationListener,OnAuthNoteListener,OnDeleteFriendListener {
 		a.startActivity(intent);
 	}
 
+	
+
+	private void initHandler() {
+		// TODO Auto-generated method stub
+		handler = new Handler() {
+			@Override
+			public void handleMessage(Message msg) {
+				// TODO Auto-generated method stub
+				super.handleMessage(msg);
+				final Info info = (Info) msg.obj;
+				if (info.isState()) {
+					AlertDialog.Builder builder = new Builder(a);
+					// 设置对话框图标，可以使用自己的图片，Android本身也提供了一些图标供我们使用
+					builder.setIcon(R.drawable.ic_launcher);
+					// 设置对话框标题
+					builder.setTitle("提示信息");
+					// 设置对话框内的文本
+					builder.setMessage("删除成功！");
+					// 设置确定按钮，并给按钮设置一个点击侦听，注意这个OnClickListener使用的是DialogInterface类里的一个内部接口
+					builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							String delid = info.getFromUser();
+							String group = info.getGroup();
+							// 查找该ID
+							label: for (int i = 0; i < childrenData.size(); i++) {
+								for (int j = 0; j < childrenData.get(i).size(); j++) {
+									String id = childrenData.get(i).get(j);
+									if (id.equals(delid)) {
+										childrenData.get(i).remove(j);
+										childrenImg.get(i).remove(j);
+										if (childrenData.get(i).size() == 0) {
+											childrenData.remove(i);
+											childrenImg.remove(i);
+											groupData.remove(i);
+										}
+										break label;
+									}
+								}
+							}
+							dialog.dismiss();
+							adapter.notifyDataSetChanged();
+						}
+					});
+					// 使用builder创建出对话框对象
+					AlertDialog dialog = builder.create();
+					// 显示对话框
+					dialog.show();
+				} else {
+					AlertDialog.Builder builder = new Builder(a);
+					// 设置对话框图标，可以使用自己的图片，Android本身也提供了一些图标供我们使用
+					builder.setIcon(R.drawable.ic_launcher);
+					// 设置对话框标题
+					builder.setTitle("提示信息");
+					// 设置对话框内的文本
+					builder.setMessage("删除失败！");
+					// 设置确定按钮，并给按钮设置一个点击侦听，注意这个OnClickListener使用的是DialogInterface类里的一个内部接口
+					builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							dialog.dismiss();
+						}
+					});
+					// 使用builder创建出对话框对象
+					AlertDialog dialog = builder.create();
+					// 显示对话框
+					dialog.show();
+				}
+			}
+		};
+	}
+
 	@Override
 	public void deleteFriendState(Info info) {
 		// TODO Auto-generated method stub
-		Message message=Message.obtain();
-		message.obj=info;
+		Log.e("main", "是哪出货哦");
+		Message message = Message.obtain();
+		message.obj = info;
 		handler.sendMessage(message);
+	}
+	
+	public void addFriend(Info info){
+		Log.e("add", info.getFromUser());
+		Toast.makeText(a, "hello", Toast.LENGTH_LONG).show();
+		HashMap<String, Group> friends = adapterinfo.getFriendsList();
+		User user = new User();
+		user.setUserid(info.getToUser());
+		user.setFriend(info.getFromUser());
+		user.setIcon(info.getIcon());
+		Group group = friends.get(info.getGroup());
+		int i=0;
+		if (group == null) {
+			group = new Group();
+			group.setGroupname(info.getGroup());
+			ArrayList<User> items = new ArrayList<User>();
+			items.add(user);
+			group.setItems(items);
+			friends.put(info.getGroup(), group);
+			
+			groupData.add(info.getGroup());
+			ArrayList<String> childList = new ArrayList<String>();
+			ArrayList<String> imgList = new ArrayList<String>();
+			childList.add(info.getToUser());
+			imgList.add(info.getIcon());
+			childrenData.add(childList);
+			childrenImg.add(imgList);
+			
+		} else {
+			group.getItems().add(user);
+			
+			for(i=0;i<groupData.size();i++){
+				if(info.getGroup().equals(groupData.get(i))){
+					childrenData.get(i).add(info.getToUser());
+					childrenImg.get(i).add(info.getIcon());
+					break;
+				}
+			}
+		}
+		adapter.notifyDataSetChanged();
 	}
 
 }
