@@ -55,7 +55,7 @@ public class DataBaseHelper {
 			switch (info.getInfoType()) {
 			case LOGIN:// «Î«Ûµ«¬º
 				script = "select * from userinfo where userid='" + info.getFromUser() + "' and password= '"
-						+ info.getPwd() + "' and idOnLine = 0";
+						+ info.getPwd() + "' and isOnLine = 0";
 				ptmt = conn.prepareStatement(script);
 				rs = ptmt.executeQuery(script);
 				reinfo.setInfoType(EnumInfoType.LOGIN);
@@ -255,7 +255,7 @@ public class DataBaseHelper {
 					reinfo.setState(true);
 				}else if(info.isend()){
 					script = "select * from sharinginfo where userid='" + info.getToUser() + "' and friendid= '"
-							+ info.getFromUser() + "'order by time desc limit 1";
+							+ info.getFromUser() + "'order by start_time desc limit 1";
 					ptmt = conn.prepareStatement(script);
 					rs = ptmt.executeQuery(script);
 					try {
@@ -270,6 +270,16 @@ public class DataBaseHelper {
 							ptmt.setString(4, info.getLat()+"");
 							ptmt.setString(5, info.getLng()+"");
 							ptmt.execute();
+							
+							//≤Â»Îsharinginfo±Ì
+							script = "update sharinginfo set end_time = ? ,end_point = ? ,distance_now = ?  where  infoid = ?";
+							ptmt = conn.prepareStatement(script);
+							ptmt.setString(1, info.getTime());
+							ptmt.setString(2, info.getCity_now());
+							ptmt.setString(3, info.getDistance()+"km");
+							ptmt.setString(4, infoid);
+							ptmt.executeUpdate();
+							
 							reinfo.setToUser(info.getToUser());
 							reinfo.setFromUser(info.getFromUser());
 							reinfo.setInfoType(EnumInfoType.SHARING_RES);
@@ -355,6 +365,12 @@ public class DataBaseHelper {
 				return DBUtils.delSharingMessage(conn,info);
 			case DEL_LOCATION_MES:
 				return DBUtils.delLocationMessage(conn, info);
+			case MODIFY_INFO:
+				return DBUtils.modifyInfo(conn, info);
+			case RESET_PWD:
+				return DBUtils.modifyPwd(conn, info);
+			case MODIFY_ICON:
+				return DBUtils.modifyIcon(conn, info);
 			default:
 				break;
 			}

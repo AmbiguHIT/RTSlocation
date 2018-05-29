@@ -29,6 +29,19 @@
         </LinearLayout>
 
         <View style="@style/bg_line" />
+        
+        <LinearLayout
+            android:id="@+id/resetPwd"
+            style="@style/mid_layout" >
+
+            <TextView
+                style="@style/usertext"
+                android:text="修改密码" />
+
+            <ImageView style="@style/img_arrow" />
+        </LinearLayout>
+
+        <View style="@style/bg_line" />
 
         <LinearLayout
             android:id="@+id/message"

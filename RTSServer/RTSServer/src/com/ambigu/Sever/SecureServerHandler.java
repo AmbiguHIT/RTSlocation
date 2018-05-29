@@ -123,6 +123,7 @@ public class SecureServerHandler extends SimpleChannelInboundHandler<String> {
 				break;
 			case SHARING_REQ:
 				boolean f = true;
+				System.out.println(InfoToJson.infoToJson(info));
 				while (iterator.hasNext()) {
 					Map.Entry<String, Model> entry =  (Map.Entry<String, Model>) iterator.next();
 					userid = (String) entry.getKey();
@@ -139,7 +140,7 @@ public class SecureServerHandler extends SimpleChannelInboundHandler<String> {
 					reinfo = new Info();
 					reinfo.setToUser(info.getFromUser());
 					reinfo.setState(false);
-					reinfo.setReqScheme(ReqScheme.SHARE_PARTY);
+					reinfo.setReqScheme(ReqScheme.SERVER);
 					reinfo.setInfoType(EnumInfoType.SHARING_RES);
 					reinfo.setfirst(info.isfirst());
 					System.out.println("Ê§°Ü"+InfoToJson.infoToJson(reinfo));
@@ -203,7 +204,10 @@ public class SecureServerHandler extends SimpleChannelInboundHandler<String> {
 			case DEL_FRIEND:
 			case DEL_LOCATION_MES:
 			case DEL_SHARING_MES:
+			case RESET_PWD:
 			case DEL_AUTH_NOTE:
+			case MODIFY_INFO:
+			case MODIFY_ICON:
 				reinfo = (new DataBaseHelper()).DealDBHelper(info);
 				ctx.writeAndFlush(InfoToJson.infoToJson(reinfo)+"\t");
 				System.out.println(InfoToJson.infoToJson(reinfo));

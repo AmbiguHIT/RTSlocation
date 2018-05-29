@@ -14,6 +14,7 @@ import com.ambigu.model.SingleSharingHistoryInfo;
 import com.ambigu.rtslocation.MyLocationHistoryActivity;
 import com.ambigu.rtslocation.R;
 import com.ambigu.settings.HistoryMap;
+import com.ambigu.util.ApplicationVar;
 import com.ambigu.util.EnumInfoType;
 import com.baidu.location.a.h;
 
@@ -34,73 +35,19 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-public class SwipeLocationHistoryAdapter extends BaseAdapter implements OnDeleteLocationMessageListener {
+public class SwipeLocationHistoryAdapter extends BaseAdapter{
 
 	private ArrayList<ShareMessage> shareMessages;
 	private Context context;
 	private ViewHolder holder;
-	private Handler handler;
 	
 	public SwipeLocationHistoryAdapter(ArrayList<ShareMessage> shareMessages,Context context) {
 		// TODO Auto-generated constructor stub
 		this.shareMessages=shareMessages;
 		this.context=context;
-		initHandler();
-		DiscardClientHandler.getInstance().setOnDeleteLocationMessageListener(this);
 	}
 
-	private void initHandler() {
-		// TODO Auto-generated method stub
-		handler=new Handler(){
-			@Override
-			public void handleMessage(Message msg) {
-				// TODO Auto-generated method stub
-				super.handleMessage(msg);
-				final Info info=(Info)msg.obj;
-				if(info.isState()){//删除成功
-					AlertDialog.Builder builder = new Builder(context);
-					// 设置对话框图标，可以使用自己的图片，Android本身也提供了一些图标供我们使用
-					builder.setIcon(R.drawable.ic_launcher);
-					// 设置对话框标题
-					builder.setTitle("提示信息");
-					// 设置对话框内的文本
-					builder.setMessage("删除成功！");
-					// 设置确定按钮，并给按钮设置一个点击侦听，注意这个OnClickListener使用的是DialogInterface类里的一个内部接口
-					builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-							int childPos=info.getChildPos();
-							shareMessages.remove(childPos);
-							notifyDataSetChanged();
-						}
-					});
-					// 使用builder创建出对话框对象
-					AlertDialog dialog = builder.create();
-					// 显示对话框
-					dialog.show();
-				}else{
-					AlertDialog.Builder builder = new Builder(context);
-					// 设置对话框图标，可以使用自己的图片，Android本身也提供了一些图标供我们使用
-					builder.setIcon(R.drawable.ic_launcher);
-					// 设置对话框标题
-					builder.setTitle("提示信息");
-					// 设置对话框内的文本
-					builder.setMessage("删除失败！");
-					// 设置确定按钮，并给按钮设置一个点击侦听，注意这个OnClickListener使用的是DialogInterface类里的一个内部接口
-					builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-							
-						}
-					});
-					// 使用builder创建出对话框对象
-					AlertDialog dialog = builder.create();
-					// 显示对话框
-					dialog.show();
-				}
-			}
-		};
-	}
+	
 
 	@Override
 	public int getCount() {
@@ -247,7 +194,7 @@ public class SwipeLocationHistoryAdapter extends BaseAdapter implements OnDelete
 		// TODO Auto-generated method stub
 		ShareMessage shareMessage=shareMessages.get(position);
 		Info info=new Info();
-		info.setFromUser(shareMessage.getFromUser());
+		info.setFromUser(ApplicationVar.getId());
 		info.setInfoType(EnumInfoType.DEL_LOCATION_MES);
 		info.setState(false);
 		info.setChildPos(position);
@@ -270,11 +217,4 @@ public class SwipeLocationHistoryAdapter extends BaseAdapter implements OnDelete
 		
 	}
 
-	@Override
-	public void deleteLocation(Info info) {
-		// TODO Auto-generated method stub
-		Message message=Message.obtain();
-		message.obj=info;
-		handler.sendMessage(message);
-	}
 }

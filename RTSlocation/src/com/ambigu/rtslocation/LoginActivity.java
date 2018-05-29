@@ -210,6 +210,14 @@ public class LoginActivity extends Activity implements OnClickListener, onLoginR
 		case R.id.btn_enter:
 			String userid = usr_input.getText().toString();// 得到用户名
 			String userpwd = pwd_input.getText().toString();// 得到密码
+			if(userid==null){
+				Toast.makeText(this, "请输入用户名！", Toast.LENGTH_LONG).show();
+				return;
+			}
+			if(userpwd==null){
+				Toast.makeText(this, "请输入用户名！", Toast.LENGTH_LONG).show();
+				return;
+			}
 			Info logininfo = new Info();
 			logininfo.setFromUser(userid);
 			logininfo.setPwd(userpwd);
@@ -271,8 +279,15 @@ public class LoginActivity extends Activity implements OnClickListener, onLoginR
 			startActivity(intent);
 			LoginActivity.this.finish();
 		} else {
-			new AlertDialog.Builder(LoginActivity.this).setTitle("提示").setMessage("服务器未连接！")
+			runOnUiThread(new Runnable() {
+				
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+			new AlertDialog.Builder(LoginActivity.this).setTitle("提示").setMessage("登录失败，请检查用户名和密码是否正确！")
 					.setPositiveButton("确定", null).show();
+				}
+			});
 		}
 	}
 

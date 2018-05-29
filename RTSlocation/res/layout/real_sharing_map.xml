@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+    
+    <RelativeLayout
+        android:id="@+id/top"
+        android:layout_width="match_parent"
+        android:layout_height="40dip" 
+        android:background="#ffffffff">
+        <ImageView
+            android:id="@+id/sudu"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:paddingLeft="10dp"
+            android:layout_alignParentLeft="true"
+            android:src="@drawable/speed" />
+
+        <TextView
+            android:id="@+id/speed"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_toRightOf="@+id/sudu"
+            android:paddingLeft="10dp"
+            android:gravity="center_vertical"
+            android:textColor="#000000"
+            android:textSize="16sp" />
+        <Button 
+            android:id="@+id/btn_center"
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
+            android:paddingRight="10dp"
+            android:layout_alignParentRight="true"
+            android:text="停止"
+            />
+    </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/l1"
+        android:background="#ffffffff"
+        android:layout_width="match_parent"
+        android:layout_height="40dip"
+        android:layout_below="@+id/top"
+        android:weightSum="3" >
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dip"
+            android:layout_weight="1" >
+
+            <ImageView
+                android:id="@+id/qidian"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_alignParentLeft="true"
+                android:paddingLeft="10dp"
+                android:src="@drawable/start_point" />
+
+            <TextView
+                android:id="@+id/start_point"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_toRightOf="@+id/qidian"
+                android:paddingLeft="10dp"
+            	android:gravity="center_vertical"
+                android:textColor="#000000"
+                android:textSize="16sp" />
+        </RelativeLayout>
+        
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dip"
+            android:layout_weight="1" >
+
+            <ImageView
+                android:id="@+id/zhongdian"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_alignParentLeft="true"
+                android:paddingLeft="10dp"
+                android:src="@drawable/end_point" />
+
+            <TextView
+                android:id="@+id/end_point"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_toRightOf="@+id/zhongdian"
+                android:paddingLeft="10dp"
+            	android:gravity="center_vertical"
+                android:textColor="#000000"
+                android:textSize="16sp" />
+        </RelativeLayout>
+        
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dip"
+            android:layout_weight="1" >
+
+            <ImageView
+                android:id="@+id/juli"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_alignParentLeft="true"
+                android:paddingLeft="10dp"
+                android:src="@drawable/distance" />
+
+            <TextView
+                android:id="@+id/distance"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_toRightOf="@+id/juli"
+                android:paddingLeft="10dp"
+            	android:gravity="center_vertical"
+                android:textColor="#000000"
+                android:textSize="16sp" />
+        </RelativeLayout>
+    </LinearLayout>
+    
+    <com.baidu.mapapi.map.MapView  
+	    android:id="@+id/sharing_map"
+	    android:padding="2dp"  
+	    android:layout_below="@+id/l1"
+	    android:layout_width="fill_parent"  
+	    android:layout_height="fill_parent"  
+	    android:clickable="true" />
+    
+    
+
+</RelativeLayout>

@@ -547,8 +547,8 @@ public class DBUtils {
 				if (!DateUtil.isOneInfo(oldTime, time, 20)) {// 不是同一次共享
 					// 生成新的信息
 					if (!isFirst) {
-						shareMessage.setEnd_point(rs.getString(8));
-						shareMessage.setEnd_time(rs.getString(2));
+						shareMessage.setEnd_point(end_point);
+						shareMessage.setEnd_time(oldTime);
 					}
 					isFirst = false;
 					shareMessage = new ShareMessage();
@@ -671,178 +671,247 @@ public class DBUtils {
 		reinfo.setToUser(info.getFromUser());
 		return reinfo;
 	}
-	
-	public static Info delFriend(Connection conn,Info info) {
-		Info reinfo=new Info();
-		boolean f=false;
-		String script="delete from user_friends where userid = '"+info.getFromUser()+"' and friendid = '"+info.getToUser()+"'";
+
+	public static Info delFriend(Connection conn, Info info) {
+		Info reinfo = new Info();
+		boolean f = false;
+		String script = "delete from user_friends where userid = '" + info.getFromUser() + "' and friendid = '"
+				+ info.getToUser() + "'";
 		try {
-			PreparedStatement ptmt=conn.prepareStatement(script);
+			PreparedStatement ptmt = conn.prepareStatement(script);
 			ptmt.executeUpdate();
-			f=true;
+			f = true;
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			f=false;
+			f = false;
 		}
-		if(f){
-			f=deleteRealativeSharing(conn,info);
+		if (f) {
+			f = deleteRealativeSharing(conn, info);
 		}
-		if(f){
-			f=deleteRealativeMessage(conn,info);
+		if (f) {
+			f = deleteRealativeMessage(conn, info);
 		}
-		if(f) reinfo.setState(true);
-		else reinfo.setState(false);
+		if (f)
+			reinfo.setState(true);
+		else
+			reinfo.setState(false);
 		reinfo.setGroup(info.getGroup());
 		reinfo.setInfoType(EnumInfoType.DEL_FRIEND);
 		reinfo.setToUser(info.getFromUser());
 		reinfo.setFromUser(info.getToUser());
 		return reinfo;
 	}
-	
-	public static Info delSharingMessage(Connection conn,Info info){
-		Info reinfo=new Info();
-		String userid="",friendid="";
-		String script="";
-		if(info.isFromMe()){
-			userid=info.getFromUser();
-			friendid=info.getToUser();
-		}else{
-			userid=info.getToUser();
-			friendid=info.getFromUser();
+
+	public static Info delSharingMessage(Connection conn, Info info) {
+		Info reinfo = new Info();
+		String userid = "", friendid = "";
+		String script = "";
+		if (info.isFromMe()) {
+			userid = info.getFromUser();
+			friendid = info.getToUser();
+		} else {
+			userid = info.getToUser();
+			friendid = info.getFromUser();
 		}
-		String time=info.getTime();
-		String infoid=userid+"$"+friendid+"$"+time.replace(" ", "$").replace("年", "$").replace(":", "$").replace("月", "$").replace("日", "$");
-		//删除share_message
-		script="delete from sharing_message where infoid = '"+infoid+"'";
-		boolean f=true;
+		String time = info.getTime();
+		String infoid = userid + "$" + friendid + "$"
+				+ time.replace(" ", "$").replace("年", "$").replace(":", "$").replace("月", "$").replace("日", "$");
+		// 删除share_message
+		script = "delete from sharing_message where infoid = '" + infoid + "'";
+		boolean f = true;
 		try {
-			PreparedStatement ptmt=conn.prepareStatement(script);
+			PreparedStatement ptmt = conn.prepareStatement(script);
 			ptmt.executeUpdate();
 		} catch (SQLException e) {
 			// TODO: handle exception
-			f=false;
+			f = false;
 		}
-		if(f){
-			script="delete from sharinginfo where userid = '"+userid+"' and friendid = '"+friendid+"' and infoid = '"+infoid+"'";
+		if (f) {
+			script = "delete from sharinginfo where userid = '" + userid + "' and friendid = '" + friendid
+					+ "' and infoid = '" + infoid + "'";
 			try {
-				PreparedStatement ptmt=conn.prepareStatement(script);
+				PreparedStatement ptmt = conn.prepareStatement(script);
 				ptmt.executeUpdate();
 			} catch (SQLException e) {
 				// TODO: handle exception
-				f=false;
+				f = false;
 			}
 		}
-		if(f) reinfo.setState(true);
-		else reinfo.setState(false);
+		if (f)
+			reinfo.setState(true);
+		else
+			reinfo.setState(false);
 		reinfo.setGroupPos(info.getGroupPos());
 		reinfo.setChildPos(info.getChildPos());
 		reinfo.setFromUser(userid);
 		reinfo.setInfoType(EnumInfoType.DEL_SHARING_MES);
 		return reinfo;
 	}
-	
-	private static boolean deleteRealativeSharing(Connection conn,Info info){
-		boolean f=true;
-		String script="delete from sharing_message where infoid like '"+info.getToUser()+"$"+info.getFromUser()+"%' or "
-					+ "infoid like '"+info.getFromUser()+"$"+info.getToUser()+"%'";
+
+	private static boolean deleteRealativeSharing(Connection conn, Info info) {
+		boolean f = true;
+		String script = "delete from sharing_message where infoid like '" + info.getToUser() + "$" + info.getFromUser()
+				+ "%' or " + "infoid like '" + info.getFromUser() + "$" + info.getToUser() + "%'";
 		System.out.println(script);
 		try {
-			PreparedStatement ptmt=conn.prepareStatement(script);
+			PreparedStatement ptmt = conn.prepareStatement(script);
 			ptmt.executeUpdate();
 		} catch (SQLException e) {
 			// TODO: handle exception
 			e.printStackTrace();
-			f=false;
+			f = false;
 		}
-		if(f){
-			script="delete from sharinginfo where infoid like '"+info.getToUser()+"$"+info.getFromUser()+"%' or "
-					+ "infoid like '"+info.getFromUser()+"$"+info.getToUser()+"%'";
+		if (f) {
+			script = "delete from sharinginfo where infoid like '" + info.getToUser() + "$" + info.getFromUser()
+					+ "%' or " + "infoid like '" + info.getFromUser() + "$" + info.getToUser() + "%'";
 			System.out.println(script);
 			try {
-				PreparedStatement ptmt=conn.prepareStatement(script);
+				PreparedStatement ptmt = conn.prepareStatement(script);
 				ptmt.executeUpdate();
 			} catch (SQLException e) {
 				// TODO: handle exception
 				e.printStackTrace();
-				f=false;
+				f = false;
 			}
 		}
-		
+
 		return f;
 	}
-	
-	private static boolean deleteRealativeMessage(Connection conn,Info info){
-		boolean f=true;
-		String script="delete from message where mesid like '"+info.getToUser()+"_"+info.getFromUser()+"%' or "
-				+ "mesid like '"+info.getFromUser()+"_"+info.getToUser()+"%'";
+
+	private static boolean deleteRealativeMessage(Connection conn, Info info) {
+		boolean f = true;
+		String script = "delete from message where mesid like '" + info.getToUser() + "_" + info.getFromUser()
+				+ "%' or " + "mesid like '" + info.getFromUser() + "_" + info.getToUser() + "%'";
 		System.out.println(script);
 		try {
-			PreparedStatement ptmt=conn.prepareStatement(script);
+			PreparedStatement ptmt = conn.prepareStatement(script);
 			ptmt.executeUpdate();
 		} catch (SQLException e) {
 			// TODO: handle exception
-			f=false;
+			f = false;
 		}
-		if(f){
-			script="delete from mesinfo where mesid like '"+info.getToUser()+"_"+info.getFromUser()+"%' or "
-					+ "mesid like '"+info.getFromUser()+"_"+info.getToUser()+"%'";
+		if (f) {
+			script = "delete from mesinfo where mesid like '" + info.getToUser() + "_" + info.getFromUser() + "%' or "
+					+ "mesid like '" + info.getFromUser() + "_" + info.getToUser() + "%'";
 			System.out.println(script);
 			try {
-				PreparedStatement ptmt=conn.prepareStatement(script);
+				PreparedStatement ptmt = conn.prepareStatement(script);
 				ptmt.executeUpdate();
 			} catch (SQLException e) {
 				// TODO: handle exception
-				f=false;
+				f = false;
 			}
 		}
-		
+
 		return f;
 	}
-	
-	public static Info delLocationMessage(Connection conn,Info info){
-		Info reinfo=new Info();
+
+	public static Info delLocationMessage(Connection conn, Info info) {
+		Info reinfo = new Info();
+		
 		String userid = info.getFromUser();
-		String script="";
-		String time=info.getTime();
-		String maxTime=DateUtil.oneInfoMaxDate(time, 20);
-		System.out.println(maxTime);
-		script="select * from authlocation where userid = '"+userid+"' order by time asc";
+		String script = "";
+		ShareMessageOfPerson shareMessageOfPerson = info.getShareMessageOfPersons().get(0);
+		ArrayList<ShareMessage> shareMessages = shareMessageOfPerson.getShareMessages();
+		ShareMessage shareMessage = shareMessages.get(0);
+		ArrayList<Point> points = shareMessage.getLatlngList();
 		try {
-			PreparedStatement ptmt=conn.prepareStatement(script);
-			ResultSet rs=ptmt.executeQuery();
-			boolean f=false;
-			while(rs.next()){
-				String now=rs.getString(2);
-				if(!f){
-					if(!rs.getString(2).equals(time)){
-						continue;
-					}
-					if(rs.getString(2).equals(time)){
-						f=true;
-						script="delete from authlocation where userid = '"+userid+"' and time = '"+now+"'";
-						ptmt=conn.prepareStatement(script);
-						ptmt.executeUpdate();
-						continue;
-					}
-				}
-				if(f){
-					if(DateUtil.isOneInfo(time, now, 20)){
-						script="delete from authlocation where userid = '"+userid+"' and time = '"+now+"'";
-						ptmt=conn.prepareStatement(script);
-						ptmt.executeUpdate();
-					}else {
-						break;
-					}
-				}
+			conn.setAutoCommit(false);
+			script = "delete from authlocation where userid = ? and time = ?";
+			PreparedStatement ptmt = conn.prepareStatement(script);
+			Gson gson=new Gson();
+			for (Point point : points) {
+				System.out.println(gson.toJson(point));
+				ptmt.setString(1, userid);
+				ptmt.setString(2, point.getTime());
+				ptmt.addBatch();
 			}
+			ptmt.executeBatch();
 			reinfo.setState(true);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
+			e.printStackTrace();
 			reinfo.setState(false);
+		}finally {
+			try {
+				conn.setAutoCommit(true);
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
+		reinfo.setChildPos(info.getChildPos());
 		reinfo.setFromUser(info.getFromUser());
 		reinfo.setInfoType(EnumInfoType.DEL_LOCATION_MES);
+		return reinfo;
+	}
+	
+	public static Info modifyInfo(Connection conn,Info info){
+		Info reinfo=new Info();
+		String script = "update userinfo set birthday = ?, age = ?,email = ?, adress = ? , sex = ? where userid = '"+info.getFromUser()+"'";
+		try {
+			PreparedStatement ptmt=conn.prepareStatement(script);
+			ptmt.setString(1, info.getBirthday());
+			ptmt.setString(2, info.getAge());
+			ptmt.setString(3, info.getEmail());
+			ptmt.setString(4, info.getAdress());
+			ptmt.setString(5, info.getSex());
+			ptmt.executeUpdate();
+			reinfo.setBirthday(info.getBirthday());
+			reinfo.setAge(info.getAge());
+			reinfo.setSex(info.getSex());
+			reinfo.setAdress(info.getAdress());
+			reinfo.setEmail(info.getEmail());
+			reinfo.setState(true);
+		} catch (SQLException e) {
+			// TODO: handle exception
+			reinfo.setState(false);
+		}
+		reinfo.setToUser(info.getFromUser());
+		reinfo.setInfoType(EnumInfoType.MODIFY_INFO);
+		return reinfo;
+	}
+	
+	public static Info modifyPwd(Connection conn,Info info){
+		Info reinfo=new Info();
+		String script = "update userinfo set password = ? where userid = '"+info.getFromUser()+"'";
+		try {
+			PreparedStatement ptmt=conn.prepareStatement(script);
+			ptmt.setString(1, info.getPwd());
+			ptmt.executeUpdate();
+			reinfo.setState(true);
+		} catch (SQLException e) {
+			// TODO: handle exception
+			reinfo.setState(false);
+		}
+		reinfo.setToUser(info.getFromUser());
+		reinfo.setInfoType(EnumInfoType.RESET_PWD);
+		return reinfo;
+	}
+	
+	public static Info modifyIcon(Connection conn,Info info){
+		Info reinfo=new Info();
+		String script = "update userinfo set iconurl = ? where userid = '"+info.getFromUser()+"'";
+		try {
+			PreparedStatement ptmt=conn.prepareStatement(script);
+			if(info.getIcon()!=null){
+				String imageurl="c://RTServerIcon//"+info.getFromUser()+"//"+info.getFromUser()+".png";
+				ptmt.setString(1, imageurl);//url存入数据库
+				System.out.println(imageurl);
+				//将图片保存到本地
+				FileUtils.base64ToFile(info.getIcon(), imageurl);
+			}else{
+				ptmt.setString(1, null);//url存入数据库
+			}
+			ptmt.executeUpdate();
+			reinfo.setState(true);
+		} catch (SQLException e) {
+			// TODO: handle exception
+			reinfo.setState(false);
+		}
+		reinfo.setToUser(info.getFromUser());
+		reinfo.setInfoType(EnumInfoType.MODIFY_ICON);
 		return reinfo;
 	}
 

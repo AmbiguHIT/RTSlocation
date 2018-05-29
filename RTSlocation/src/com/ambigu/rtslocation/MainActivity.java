@@ -1,6 +1,8 @@
 package com.ambigu.rtslocation;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,6 +15,7 @@ import com.ambigu.client.RTSClient;
 import com.ambigu.drive.DriveActivity;
 import com.ambigu.listener.OnAddFriendListener;
 import com.ambigu.listener.OnDeleteFriendListener;
+import com.ambigu.listener.OnModifyIconlistener;
 import com.ambigu.model.Group;
 import com.ambigu.model.Info;
 import com.ambigu.model.User;
@@ -21,6 +24,8 @@ import com.ambigu.navi.NaviGuideActivity;
 import com.ambigu.util.ApplicationVar;
 import com.ambigu.util.EnumInfoType;
 import com.ambigu.util.FaceConversionUtil;
+import com.ambigu.util.FileUtils;
+import com.ambigu.util.Utils;
 import com.baidu.mapapi.SDKInitializer;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.navisdk.adapter.BNCommonSettingParam;
@@ -47,6 +52,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -65,7 +72,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-public class MainActivity extends Activity implements OnClickListener, OnGetNaviDataListener {
+public class MainActivity extends Activity implements OnClickListener, OnGetNaviDataListener, OnModifyIconlistener {
 	// private MapView mMapView = null;
 
 	private static final String APP_FOLDER_NAME = "RTSlocation";
@@ -74,10 +81,12 @@ public class MainActivity extends Activity implements OnClickListener, OnGetNavi
 	public static final String RESET_END_NODE = "resetEndNode";
 	public static final String VOID_MODE = "voidMode";
 
-	private final static String authBaseArr[] = { Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.ACCESS_COARSE_LOCATION,
-			Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.READ_PHONE_STATE};
-	private final static String authComArr[] = { Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.ACCESS_COARSE_LOCATION,
-			Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.READ_PHONE_STATE};
+	private final static String authBaseArr[] = { Manifest.permission.WRITE_EXTERNAL_STORAGE,
+			Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION,
+			Manifest.permission.READ_PHONE_STATE };
+	private final static String authComArr[] = { Manifest.permission.WRITE_EXTERNAL_STORAGE,
+			Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION,
+			Manifest.permission.READ_PHONE_STATE };
 	private final static int authBaseRequestCode = 1;
 	private final static int authComRequestCode = 2;
 
@@ -95,6 +104,7 @@ public class MainActivity extends Activity implements OnClickListener, OnGetNavi
 
 	private String mSDCardPath = null;
 	private ProgressDialog pDialog;
+	private String imagePath;
 	private volatile static Semaphore semaphore = new Semaphore(1);
 
 	@Override
@@ -238,10 +248,7 @@ public class MainActivity extends Activity implements OnClickListener, OnGetNavi
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-		// MyPagerAdapter adapter = new MyPagerAdapter(views, MainActivity.this,
-		// viewPager);
-		// viewPager.setAdapter(adapter);
+		DiscardClientHandler.getInstance().setOnModifyIconlistener(this);
 	}
 
 	public static void initAdapter(Message msg) {
@@ -292,8 +299,55 @@ public class MainActivity extends Activity implements OnClickListener, OnGetNavi
 			Bundle bundle = data.getExtras();
 			Info info = (Info) bundle.get("info");
 			adapter.addFriend(info);
-			
+
 		}
+
+		// 获取图片路径
+		if (resultCode != Activity.RESULT_OK) {
+			return;
+		}
+		if (null == data) {
+			return;
+		}
+		Uri uri = null;
+		if (requestCode == ApplicationVar.KITKAT_LESS) {
+			uri = data.getData();
+			// 调用裁剪方法
+			Utils.getInstance().cropPicture(this, uri);
+		} else if (requestCode == ApplicationVar.KITKAT_ABOVE) {
+			uri = data.getData();
+			// 先将这个uri转换为path，然后再转换为uri
+			String thePath = Utils.getInstance().getPath(this, uri);
+			Utils.getInstance().cropPicture(this, Uri.fromFile(new File(thePath)));
+		} else if (requestCode == ApplicationVar.INTENT_CROP) {
+			Bitmap bitmap = data.getParcelableExtra("data");
+			// ivResult.setImageBitmap(bitmap);
+			File temp = new File(getCacheDir().getAbsolutePath() + "//" + ApplicationVar.getId() + "//Icon" + "//");// 缓存文件夹
+			if (!temp.exists()) {
+				temp.mkdir();
+			}
+			File tempFile = new File(
+					getCacheDir().getAbsolutePath() + "//" + ApplicationVar.getId() + "//Icon" + "//" + "reg" + ".png"); // 以默认注册名reg为文件名
+			// 图像保存到文件中
+			FileOutputStream foutput = null;
+			try {
+				foutput = new FileOutputStream(tempFile);
+				bitmap.compress(Bitmap.CompressFormat.PNG, 100, foutput);
+				imagePath = tempFile.getAbsolutePath();
+
+				// 向服务器发送数据
+				Info info = new Info();
+				String icon = FileUtils.imageToBase64(imagePath);
+				info.setIcon(icon);
+				info.setFromUser(ApplicationVar.getId());
+				info.setInfoType(EnumInfoType.MODIFY_ICON);
+				RTSClient.writeAndFlush(info);
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
 	}
 
 	@Override
@@ -412,8 +466,7 @@ public class MainActivity extends Activity implements OnClickListener, OnGetNavi
 	@TargetApi(23)
 	private void initNavi() {
 		// 申请权限
-		
-		
+
 		if (android.os.Build.VERSION.SDK_INT >= 23) {
 			if (!hasBasePhoneAuth()) {
 
@@ -517,8 +570,9 @@ public class MainActivity extends Activity implements OnClickListener, OnGetNavi
 			/*
 			 * 设置途径点以及resetEndNode会回调该接口
 			 */
-			Log.e("即将导航","hahha");
-			if(pDialog!=null&&pDialog.isShowing()) pDialog.dismiss();
+			Log.e("即将导航", "hahha");
+			if (pDialog != null && pDialog.isShowing())
+				pDialog.dismiss();
 			Intent intent = new Intent(MainActivity.this, NaviGuideActivity.class);
 			Bundle bundle = new Bundle();
 			bundle.putSerializable(ROUTE_PLAN_NODE, (BNRoutePlanNode) mBNRoutePlanNode);
@@ -546,7 +600,7 @@ public class MainActivity extends Activity implements OnClickListener, OnGetNavi
 		// 必须设置APPID，否则会静音
 		bundle.putString(BNCommonSettingParam.TTS_APP_ID, "11265902");
 		BNaviSettingManager.setNaviSdkParam(bundle);
-		
+
 	}
 
 	private BNOuterTTSPlayerCallback mTTSCallback = new BNOuterTTSPlayerCallback() {
@@ -614,10 +668,10 @@ public class MainActivity extends Activity implements OnClickListener, OnGetNavi
 	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
 		// TODO Auto-generated method stub
 		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-		
+
 		if (requestCode == authBaseRequestCode) {
 			for (int ret : grantResults) {
-				
+
 				if (ret == PackageManager.PERMISSION_GRANTED) {
 
 					Toast.makeText(this, "申请权限chengg", Toast.LENGTH_LONG).show();
@@ -638,7 +692,38 @@ public class MainActivity extends Activity implements OnClickListener, OnGetNavi
 		}
 
 	}
-	
-	
+
+	@Override
+	public void modifyIcon(Info info) {
+		// TODO Auto-generated method stub
+		if (info.isState()) {
+			runOnUiThread(new Runnable() {
+
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					//更新本地icon
+					String icon = FileUtils.imageToBase64(imagePath);
+					FileUtils.base64ToFile(icon, getCacheDir().getAbsolutePath() + "//" + ApplicationVar.getId()
+							+ "//Icon" + "//" + ApplicationVar.getId() + ".png");
+					adapter.showImage(imagePath);
+				}
+			});
+		} else {
+			runOnUiThread(new Runnable() {
+
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					final AlertDialog.Builder normalDialog = new AlertDialog.Builder(MainActivity.this);
+					normalDialog.setIcon(R.drawable.ic_launcher);
+					normalDialog.setTitle("提示信息");
+					normalDialog.setMessage("修改失败");
+					normalDialog.setPositiveButton("确定", null);
+					normalDialog.show();
+				}
+			});
+		}
+	}
 
 }

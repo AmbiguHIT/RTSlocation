@@ -8,6 +8,7 @@ import com.baidu.mapapi.map.BitmapDescriptor;
 import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.overlayutil.DrivingRouteOverlay;
+import com.baidu.mapapi.overlayutil.WalkingRouteOverlay;
 import com.baidu.mapapi.search.core.SearchResult;
 import com.baidu.mapapi.search.route.BikingRouteResult;
 import com.baidu.mapapi.search.route.DrivingRoutePlanOption;
@@ -124,23 +125,7 @@ public class RouteSimulate implements OnGetRoutePlanResultListener{
 	}
 	
 	
-	 private class MyDrivingRouteOverlay extends DrivingRouteOverlay {
-	        public MyDrivingRouteOverlay(BaiduMap baiduMap) {
-	            super(baiduMap);
-	        }
-
-	        @Override
-	        public BitmapDescriptor getStartMarker() {
-	            return null;
-	        }
-
-	        @Override
-	        public BitmapDescriptor getTerminalMarker() {
-	            return null;
-	        }
-
-
-	    }
+	 
 
 
 	@Override
@@ -153,7 +138,7 @@ public class RouteSimulate implements OnGetRoutePlanResultListener{
 	public void onGetDrivingRouteResult(DrivingRouteResult drivingRouteResult) {
 		// TODO Auto-generated method stub
 		if (drivingRouteResult == null || drivingRouteResult.error != SearchResult.ERRORNO.NO_ERROR) {
-			Toast.makeText(context, "鎶辨瓑锛屾湭鎵惧埌缁撴灉", Toast.LENGTH_SHORT).show();
+			Toast.makeText(context, "路线规划不成功！", Toast.LENGTH_SHORT).show();
 		}
 		if (drivingRouteResult.error == SearchResult.ERRORNO.AMBIGUOUS_ROURE_ADDR) {
 			// 璧风粓鐐规垨閫旂粡鐐瑰湴鍧�鏈夊矏涔夛紝閫氳繃浠ヤ笅鎺ュ彛鑾峰彇寤鸿鏌ヨ淇℃伅
@@ -178,9 +163,25 @@ public class RouteSimulate implements OnGetRoutePlanResultListener{
 	}
 
 	@Override
-	public void onGetWalkingRouteResult(WalkingRouteResult arg0) {
+	public void onGetWalkingRouteResult(WalkingRouteResult walkingRouteResult) {
 		// TODO Auto-generated method stub
-		
+		if (walkingRouteResult == null || walkingRouteResult.error != SearchResult.ERRORNO.NO_ERROR) {
+			Toast.makeText(context, "路线规划不成功！", Toast.LENGTH_SHORT).show();
+		}
+		if (walkingRouteResult.error == SearchResult.ERRORNO.AMBIGUOUS_ROURE_ADDR) {
+			// 璧风粓鐐规垨閫旂粡鐐瑰湴鍧�鏈夊矏涔夛紝閫氳繃浠ヤ笅鎺ュ彛鑾峰彇寤鸿鏌ヨ淇℃伅
+			// walkingRouteResult.getSuggestAddrInfo()
+			return;
+		}
+		if (walkingRouteResult.error == SearchResult.ERRORNO.NO_ERROR) {
+			WalkingRouteOverlay walkRouteOverlay = new MyWalkingRouteOverlay(bdMap);
+			walkRouteOverlay.setData(walkingRouteResult.getRouteLines().get(0));// 璁剧疆涓�鏉￠┚杞﹁矾绾挎柟妗�
+
+			bdMap.setOnMarkerClickListener(walkRouteOverlay);
+			walkRouteOverlay.addToMap(isClear);
+			//drivingRouteOverlay.zoomToSpan();
+			//pointList=drivingRouteOverlay.getPointList();
+		}
 	}
 	
 	public ArrayList<LatLng> getPointList(){
@@ -198,6 +199,42 @@ public class RouteSimulate implements OnGetRoutePlanResultListener{
 		// TODO Auto-generated method stub
 		
 	}
+	
+	private class MyDrivingRouteOverlay extends DrivingRouteOverlay {
+        public MyDrivingRouteOverlay(BaiduMap baiduMap) {
+            super(baiduMap);
+        }
+
+        @Override
+        public BitmapDescriptor getStartMarker() {
+            return null;
+        }
+
+        @Override
+        public BitmapDescriptor getTerminalMarker() {
+            return null;
+        }
+
+
+    }
+	
+	private class MyWalkingRouteOverlay extends WalkingRouteOverlay {
+        public MyWalkingRouteOverlay(BaiduMap baiduMap) {
+            super(baiduMap);
+        }
+
+        @Override
+        public BitmapDescriptor getStartMarker() {
+            return null;
+        }
+
+        @Override
+        public BitmapDescriptor getTerminalMarker() {
+            return null;
+        }
+
+
+    }
 
 
 }

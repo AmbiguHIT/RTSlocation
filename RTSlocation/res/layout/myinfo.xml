@@ -5,28 +5,70 @@
     android:background="#F0F3F6"
     android:orientation="vertical" >
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:orientation="horizontal" >
+
+        <Button
+            android:id="@+id/btn_modify"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="100dp"
+            android:layout_height="45dp"
+            android:layout_gravity="center"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp"
+            android:background="@drawable/shape_green_content_normal"
+            android:text="修改信息"
+            android:textColor="@color/white"
+            android:textSize="18dp" />
+
+        <Button
+            android:id="@+id/btn_enter"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="100dp"
+            android:layout_height="45dp"
+            android:layout_gravity="center"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp"
+            android:background="@drawable/shape_green_content_normal"
+            android:text="确认修改"
+            android:textColor="@color/white"
+            android:textSize="18dp"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/btn_cancel"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="100dp"
+            android:layout_height="45dp"
+            android:layout_gravity="center"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp"
+            android:background="@drawable/shape_green_content_normal"
+            android:text="取消"
+            android:textColor="@color/white"
+            android:textSize="18dp"
+            android:visibility="gone" />
+    </LinearLayout>
+
     <LinearLayout style="@style/wrap_layout" >
 
         <!-- 上圆角 -->
 
-        <LinearLayout
-            android:id="@+id/geqian"
-            style="@style/top_layout" >
+        <LinearLayout style="@style/top_layout" >
 
             <TextView
-                android:layout_weight="0.07"
                 style="@style/usertext"
+                android:layout_weight="0.07"
                 android:text="用户名：" />
-
             <TextView
-                android:id="@+id/username"
+                android:id="@+id/username1"
                 style="@style/usertext"
                 android:text="" />
         </LinearLayout>
 
         <!-- 分割线 -->
-
-        <View style="@style/bg_line" />
         <!-- 无圆角 -->
 
         <View style="@style/bg_line" />
@@ -34,12 +76,35 @@
         <LinearLayout style="@style/mid_layout" >
 
             <TextView
-                android:layout_weight="0.07"
                 style="@style/usertext"
-                android:text="性  别：" />
+                android:layout_weight="0.07"
+                android:text="性    别：" />
+
+            <RadioGroup
+                android:id="@+id/radioGroup_sex"
+                style="@style/usertext"
+                android:layout_gravity="center_vertical"
+                android:orientation="horizontal"
+                android:visibility="gone"
+                android:weightSum="2" >
+
+                <RadioButton
+                    android:id="@+id/boy_id"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="Boy"/>
+
+                <RadioButton
+                    android:id="@+id/girl_id"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="Girl"/>
+            </RadioGroup>
 
             <TextView
-                android:id="@+id/sex"
+                android:id="@+id/sex1"
                 style="@style/usertext"
                 android:text="" />
         </LinearLayout>
@@ -49,13 +114,19 @@
         <LinearLayout style="@style/mid_layout" >
 
             <TextView
-                android:layout_weight="0.07"
                 style="@style/usertext"
-                android:text="年  龄：" />
+                android:layout_weight="0.07"
+                android:text="年    龄：" />
 
-            <TextView
+            <EditText
                 android:id="@+id/age"
                 style="@style/usertext"
+                android:text=""
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/age1"
+                style="@style/usertext"
                 android:text="" />
         </LinearLayout>
 
@@ -66,10 +137,16 @@
             <TextView
                 style="@style/usertext"
                 android:layout_weight="0.07"
-                android:text="生  日：" />
+                android:text="生    日：" />
+
+            <EditText
+                android:id="@+id/birthday"
+                style="@style/usertext"
+                android:text=""
+                android:visibility="gone" />
 
             <TextView
-                android:id="@+id/birthday"
+                android:id="@+id/birthday1"
                 style="@style/usertext"
                 android:text="" />
         </LinearLayout>
@@ -83,8 +160,14 @@
                 android:layout_weight="0.07"
                 android:text="E-mail：" />
 
-            <TextView
+            <EditText
                 android:id="@+id/email"
+                style="@style/usertext"
+                android:text=""
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/email1"
                 style="@style/usertext"
                 android:text="" />
         </LinearLayout>
@@ -95,13 +178,19 @@
         <LinearLayout style="@style/bottom_layout" >
 
             <TextView
-                android:layout_weight="0.07"
                 style="@style/usertext"
-                android:text="地  址：" >
+                android:layout_weight="0.07"
+                android:text="地    址：" >
             </TextView>
 
-            <TextView
+            <EditText
                 android:id="@+id/adress"
+                style="@style/usertext"
+                android:text=""
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/adress1"
                 style="@style/usertext"
                 android:text="" />
         </LinearLayout>

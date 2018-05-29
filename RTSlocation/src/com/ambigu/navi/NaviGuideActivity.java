@@ -485,61 +485,17 @@ public class NaviGuideActivity extends Activity implements OnSharingResListener{
 					        public void onClick(DialogInterface dialog, int which) {
 					        	dialog.dismiss();
 								sharingButton.setBackgroundResource(R.drawable.sharing);
-
-//					        	//发送共享结束信息
-//								Info info1=new Info();
-//								info1.setFromUser(ApplicationVar.getId());
-//								info1.setToUser(info.getFromUser());
-//								info1.setDrivingstate(0);
-//								info1.setend(true);
-//								info1.setState(true);
-//								info.setReqScheme(ReqScheme.SHARE_PARTY);
-//								info1.setInfoType(EnumInfoType.SHARING_RES);
-//								// 发送广播
-//								Intent broadCastIntent = new Intent("com.ambigu.rtslocation.RealTimeSharing");
-//								Bundle broadCastBundle = new Bundle();
-//								broadCastBundle.putSerializable("info", info1);
-//								broadCastIntent.putExtra("info", broadCastBundle);
-//								sendBroadcast(broadCastIntent);
-								
-
 								//清除程序共享状态
 								Utils.clearSharingState(NaviGuideActivity.this);
 					        }
 					});
-//					builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
-//						
-//						@Override
-//						public void onClick(DialogInterface dialog, int which) {
-//							// TODO Auto-generated method stub
-//							dialog.dismiss();
-//							sharingButton.setBackgroundResource(R.drawable.sharing_pressed);
-//
-//				        	//发送共享结束信息
-//							Info info1=new Info();
-//							info1.setFromUser(ApplicationVar.getId());
-//							info1.setToUser(info.getFromUser());
-//							info1.setDrivingstate(0);
-//							info1.setend(false);
-//							info1.setState(false);
-//							info.setReqScheme(ReqScheme.SHARE_PARTY);
-//							info1.setInfoType(EnumInfoType.SHARING_RES);
-//							// 发送广播
-//							Intent broadCastIntent = new Intent("com.ambigu.rtslocation.RealTimeSharing");
-//							Bundle broadCastBundle = new Bundle();
-//							broadCastBundle.putSerializable("info", info1);
-//							broadCastIntent.putExtra("info", broadCastBundle);
-//							sendBroadcast(broadCastIntent);
-//						}
-//					});
-					
 					//使用builder创建出对话框对象
 					AlertDialog dialog = builder.create();
 					//显示对话框
 					dialog.show();
 				}
 			});
-		}else if(!info.isend()&&info.getReqScheme()==ReqScheme.SHARE_PARTY){//主动请求的共享结束不再重复回发&&程序异常结束共享发送最后一条信息以结束行程
+		}else if(info.getReqScheme()==ReqScheme.SERVER&&info.getInfoType()==EnumInfoType.SHARING_RES){//程序异常结束共享发送最后一条信息以结束行程
 			isSharing=false;
 			if(!isShow){
 	        	//发送共享结束信息
@@ -548,6 +504,7 @@ public class NaviGuideActivity extends Activity implements OnSharingResListener{
 				info1.setToUser(info.getFromUser());
 				info1.setDrivingstate(0);
 				info1.setend(true);
+				info.setReqScheme(ReqScheme.SERVER);//服务器端知道后设置结束
 				info1.setInfoType(EnumInfoType.SHARING_REQ);
 				// 发送广播
 				Intent broadCastIntent = new Intent("com.ambigu.rtslocation.RealTimeSharing");
@@ -567,8 +524,8 @@ public class NaviGuideActivity extends Activity implements OnSharingResListener{
 						//设置对话框标题
 						builder.setTitle("提示信息");
 						//设置对话框内的文本
-						if(info.isfirst()) builder.setMessage("发起共享失败，请检查网络状态或提示好友上线！");
-						else  builder.setMessage("共享遭遇意外情况退出！");
+						if(info.isfirst()&&!info.isend()) builder.setMessage("发起共享失败，请检查网络状态或提示好友上线！");
+						else if(!info.isfirst()&&info.isend())  builder.setMessage("共享遭遇意外情况退出！");//这时应该写入数据库
 						//设置确定按钮，并给按钮设置一个点击侦听，注意这个OnClickListener使用的是DialogInterface类里的一个内部接口
 						builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
 						        @Override
@@ -579,7 +536,6 @@ public class NaviGuideActivity extends Activity implements OnSharingResListener{
 									isShow=false;
 									isSharing=false;
 									
-
 									//清除程序共享状态
 									Utils.clearSharingState(NaviGuideActivity.this);
 						        }
@@ -630,7 +586,7 @@ public class NaviGuideActivity extends Activity implements OnSharingResListener{
 					dialog.show();
 				}
 			});
-		}else if(info.isend()&&info.getReqScheme()==ReqScheme.BE_SHARED_PARTY&&info.isState()&&info.getInfoType()==EnumInfoType.SHARING_RES){
+		}else if(info.isState()&&info.isend()&&info.getReqScheme()==ReqScheme.BE_SHARED_PARTY&&info.isState()&&info.getInfoType()==EnumInfoType.SHARING_RES){
 			//对方确认停止发送信息
 			reqthread.interrupt();//不应该再发了，即使刚刚仍有信息在睡眠中未发出去
 		}

@@ -16,12 +16,14 @@ import com.ambigu.listener.OnAuthNoteListener;
 import com.ambigu.listener.OnDeleteFriendListener;
 import com.ambigu.listener.OnGetSelfLocationListener;
 import com.ambigu.listener.OnSharingMessageListener;
+import com.ambigu.listener.OnSharingResListener;
 import com.ambigu.model.DrivingScheme;
 import com.ambigu.model.Group;
 import com.ambigu.model.Info;
 import com.ambigu.model.MessageOfPerson;
 import com.ambigu.model.ReqScheme;
 import com.ambigu.model.User;
+import com.ambigu.navi.NaviGuideActivity;
 import com.ambigu.route.RouteSimulate;
 import com.ambigu.rtslocation.AcquireAuthLatlngActivity;
 import com.ambigu.rtslocation.AuthInfoActivity;
@@ -30,15 +32,22 @@ import com.ambigu.rtslocation.MainActivity;
 import com.ambigu.rtslocation.MessageActivity;
 import com.ambigu.rtslocation.MyLocationHistoryActivity;
 import com.ambigu.rtslocation.R;
+import com.ambigu.rtslocation.RegisterActivity;
+import com.ambigu.rtslocation.ResetPwdActivity;
+import com.ambigu.rtslocation.SharingPartyActivity;
+import com.ambigu.rtslocation.SharingPartyActivity.SharingReceiver;
 import com.ambigu.settings.SettingsActivity;
 import com.ambigu.settings.SharingHistoryActivity;
 import com.ambigu.settings.SupportSettingsActivity;
 import com.ambigu.util.ApplicationVar;
 import com.ambigu.util.EnumInfoType;
+import com.ambigu.util.LogUtils;
 import com.ambigu.util.RTSMessage;
+import com.ambigu.util.Utils;
 import com.ambigu.view.CircleImageView;
 import com.ambigu.view.PinnedHeaderExpandableListView;
 import com.ambigu.view.SwipeListView;
+import com.baidu.location.a.r;
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.BaiduMap.OnMarkerClickListener;
 import com.baidu.mapapi.map.BitmapDescriptor;
@@ -59,6 +68,7 @@ import com.baidu.mapapi.search.geocode.GeoCoder;
 import com.baidu.mapapi.search.geocode.OnGetGeoCoderResultListener;
 import com.baidu.mapapi.search.geocode.ReverseGeoCodeResult;
 import com.baidu.panosdk.plugin.indoor.R.string;
+import com.google.gson.Gson;
 
 import android.R.integer;
 import android.annotation.SuppressLint;
@@ -72,6 +82,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -96,6 +108,7 @@ import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnChildClickListener;
 import android.widget.ExpandableListView.OnGroupClickListener;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
@@ -106,7 +119,7 @@ import android.widget.Toast;
  * @version
  */
 public class MyPagerAdapter extends PagerAdapter implements OnSharingMessageListener, OnGetGeoCoderResultListener,
-		OnGetSelfLocationListener, OnAuthNoteListener, OnDeleteFriendListener {
+		OnGetSelfLocationListener, OnAuthNoteListener, OnDeleteFriendListener, OnSharingResListener {
 
 	private List<View> views = new ArrayList<View>();
 	private Activity a;
@@ -143,8 +156,14 @@ public class MyPagerAdapter extends PagerAdapter implements OnSharingMessageList
 	private static LatLng startLatLng;
 	private OnGetNaviDataListener onGetNaviDataListener;
 	private Handler handler;
-	private Timer mTimer;
-	private TimerTask mTimerTask;
+	private Thread reqthread = null;
+	private boolean isShow = false;
+	private boolean isSharing = false;
+	private boolean isClicked = false;
+	private String users[];
+	private String toUser;
+	private SharingReceiver receiver1;
+	public LatLng oldLatlng;
 
 	public MyPagerAdapter(List<View> views, Activity a, ViewPager viewPager, Info adapterinfo) {
 		super();
@@ -153,7 +172,8 @@ public class MyPagerAdapter extends PagerAdapter implements OnSharingMessageList
 		this.adapterinfo = adapterinfo;
 		this.onGetNaviDataListener = (OnGetNaviDataListener) a;
 		initHandler();
-
+		initReceiver();
+		DiscardClientHandler.getInstance().setOnSharingResListener(this);
 		DiscardClientHandler.getInstance().setOnDeleteFriendListener(this);
 	}
 
@@ -204,24 +224,6 @@ public class MyPagerAdapter extends PagerAdapter implements OnSharingMessageList
 		mBaiduMap = mMapView.getMap();
 		// 开启定位图层
 		mBaiduMap.setMyLocationEnabled(true);
-		sharing_ib.setOnTouchListener(new OnTouchListener() {
-
-			@Override
-			public boolean onTouch(View v, MotionEvent event) {
-				// TODO Auto-generated method stub
-				if (event.getAction() == MotionEvent.ACTION_DOWN) {
-					int[] location = new int[2];
-					sharing_ib.getLocationOnScreen(location);
-					int x = location[0];
-					int y = location[1];
-					Toast toast = Toast.makeText(a, "实时共享", Toast.LENGTH_LONG);
-					toast.setGravity(Gravity.TOP | Gravity.LEFT, x, y + 10);
-					toast.getView().getBackground().setAlpha(100);// 设置透明度
-					toast.show();
-				}
-				return true;
-			}
-		});
 
 		mSearch = GeoCoder.newInstance();
 		mSearch.setOnGetGeoCodeResultListener(this);
@@ -230,8 +232,82 @@ public class MyPagerAdapter extends PagerAdapter implements OnSharingMessageList
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
-				// 发起共享
+				Log.e("click", "点击了");
 
+				int[] location = new int[2];
+				sharing_ib.getLocationOnScreen(location);
+				int x = location[0];
+				int y = location[1];
+				Toast toast = Toast.makeText(a, "实时共享", Toast.LENGTH_LONG);
+				toast.setGravity(Gravity.TOP | Gravity.LEFT, x, y + 10);
+				toast.getView().getBackground().setAlpha(100);// 设置透明度
+				toast.show();
+				// 发起共享
+				if (!isClicked) {// 点击
+					users = initFriendData();
+					if (!isSharing) {
+						AlertDialog dialog = new AlertDialog.Builder(a).setIcon(R.drawable.qq_icon)// 设置标题的图片
+								.setTitle("请选择好友")// 设置对话框的标题
+								.setItems(users, new DialogInterface.OnClickListener() {
+
+									@Override
+									public void onClick(DialogInterface dialog, int which) {
+										toUser = users[which];
+										isSharing = true;// 正在共享
+										realTimeSharing(toUser, 0);
+									}
+								}).setNegativeButton("取消", new DialogInterface.OnClickListener() {
+									@Override
+									public void onClick(DialogInterface dialog, int which) {
+										dialog.dismiss();
+										sharing_ib.setBackgroundResource(R.drawable.sharing);
+										isClicked = false;
+
+									}
+								}).create();
+						dialog.show();
+					} else {
+						AlertDialog.Builder builder = new Builder(a);
+						// 设置对话框图标，可以使用自己的图片，Android本身也提供了一些图标供我们使用
+						builder.setIcon(R.drawable.ic_launcher);
+						// 设置对话框标题
+						builder.setTitle("提示信息");
+						// 设置对话框内的文本
+						builder.setMessage("您已经在共享中，不可再次请求！");
+						// 设置确定按钮，并给按钮设置一个点击侦听，注意这个OnClickListener使用的是DialogInterface类里的一个内部接口
+						builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+							@Override
+							public void onClick(DialogInterface dialog, int which) {
+								dialog.dismiss();
+								sharing_ib.setBackgroundResource(R.drawable.sharing);
+							}
+						});
+
+						// 使用builder创建出对话框对象
+						AlertDialog dialog = builder.create();
+						// 显示对话框
+						dialog.show();
+					}
+				} else {// 取消
+					isSharing = false;
+					sharing_ib.setBackgroundResource(R.drawable.sharing);
+					Info info1 = new Info();
+					info1.setFromUser(ApplicationVar.getId());
+					info1.setToUser(toUser);
+					info1.setend(true);
+					info1.setReqScheme(ReqScheme.SHARE_PARTY);
+					info1.setInfoType(EnumInfoType.SHARING_REQ);
+					// 发送广播
+					Intent broadCastIntent = new Intent("com.ambigu.rtslocation.RealTimeSharing");
+					Bundle broadCastBundle = new Bundle();
+					broadCastBundle.putSerializable("info", info1);
+					broadCastIntent.putExtra("info", broadCastBundle);
+					a.sendBroadcast(broadCastIntent);
+
+					// 清除程序共享状态
+					Utils.clearSharingState(a);
+				}
+				isClicked = !isClicked;
 			}
 		});
 
@@ -313,24 +389,48 @@ public class MyPagerAdapter extends PagerAdapter implements OnSharingMessageList
 		receiver = new MapReceiver();
 		IntentFilter filter = new IntentFilter("com.ambigu.service.SharingLocation");
 		a.registerReceiver(receiver, filter);
+
+		receiver1 = new SharingReceiver();
+		IntentFilter filter1 = new IntentFilter("com.ambigu.service.ReturnLocation");
+		a.registerReceiver(receiver1, filter1);
 	}
 
 	private void initListener(View view, Info info) {
 		// TODO Auto-generated method stub
-		CircleImageView civ = (CircleImageView) view.findViewById(R.id.touxiang);
-
 		// 设置头像
-		Drawable bitmap = BitmapDrawable.createFromPath(a.getCacheDir().getAbsolutePath() + "//"
-				+ ApplicationVar.getId() + "//Icon" + "//" + ApplicationVar.getId() + ".png");
-		civ.setBackground(bitmap);
-		civ.setBackground(bitmap);
+		String iconPath = a.getCacheDir().getAbsolutePath() + "//"
+				+ ApplicationVar.getId() + "//Icon" + "//" + ApplicationVar.getId() + ".png";
+		showImage(iconPath);
 
 		LinearLayout auth_history = (LinearLayout) view.findViewById(R.id.auth_history);
+		LinearLayout resetPwd = (LinearLayout) view.findViewById(R.id.resetPwd);
 		LinearLayout driving_history = (LinearLayout) view.findViewById(R.id.driving_history);
 		LinearLayout myinfo = (LinearLayout) view.findViewById(R.id.myinfo);
 		LinearLayout message = (LinearLayout) view.findViewById(R.id.message);
 		LinearLayout settings = (LinearLayout) view.findViewById(R.id.settings);
 		LinearLayout loginout = (LinearLayout) view.findViewById(R.id.loginout);
+		CircleImageView touxiang = (CircleImageView) view.findViewById(R.id.touxiang);
+
+		touxiang.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				final AlertDialog.Builder normalDialog = new AlertDialog.Builder(a);
+				normalDialog.setIcon(R.drawable.ic_launcher);
+				normalDialog.setTitle("提示信息");
+				normalDialog.setMessage("您要修改头像吗？");
+				normalDialog.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						// TODO Auto-generated method stub
+						Utils.getInstance().selectPicture(a);
+					}
+				});
+				normalDialog.show();
+			}
+		});
 
 		// 共享历史
 		message.setOnClickListener(new OnClickListener() {
@@ -343,6 +443,17 @@ public class MyPagerAdapter extends PagerAdapter implements OnSharingMessageList
 				info.setFromUser(ApplicationVar.getId());
 				info.setInfoType(EnumInfoType.GET_SHARING_MES);
 				RTSClient.writeAndFlush(info);
+			}
+		});
+
+		// 修改密码
+		resetPwd.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				Intent intent = new Intent(a, ResetPwdActivity.class);
+				a.startActivity(intent);
 			}
 		});
 
@@ -430,6 +541,13 @@ public class MyPagerAdapter extends PagerAdapter implements OnSharingMessageList
 		});
 
 	}
+	// 加载图片
+	public void showImage(String imaePath) {
+		Bitmap bm = BitmapFactory.decodeFile(imaePath);
+		ImageView iv_icon = ((ImageView) a.findViewById(R.id.touxiang));
+		iv_icon.setBackgroundResource(0);
+		iv_icon.setImageBitmap(bm);
+	}
 
 	private void initView1(View view) {
 		// TODO Auto-generated method stub
@@ -488,7 +606,11 @@ public class MyPagerAdapter extends PagerAdapter implements OnSharingMessageList
 									a.startActivity(intent2);
 									break;
 								case 3:// 实时共享
-									realTimeSharing((String) view.getTag(R.id.tag_titile));
+									Intent intent3 = new Intent(a, SharingPartyActivity.class);
+									Bundle bundle2 = new Bundle();
+									bundle2.putString("toUser", (String) view.getTag(R.id.tag_titile));
+									intent3.putExtras(bundle2);
+									a.startActivity(intent3);
 									break;
 
 								default:
@@ -544,7 +666,8 @@ public class MyPagerAdapter extends PagerAdapter implements OnSharingMessageList
 			childrenData.add(childlist);
 			childrenImg.add(imglist);
 		}
-		if(view!=null)initView1(view);
+		if (view != null)
+			initView1(view);
 
 		// 设置单个分组展开
 		// explistview.setOnGroupClickListener(new GroupClickListener());
@@ -626,7 +749,11 @@ public class MyPagerAdapter extends PagerAdapter implements OnSharingMessageList
 									break;
 								case 3:
 									// 发起共享
-									realTimeSharing((String) view.getTag(R.id.tag_titile));
+									Intent intent3 = new Intent(a, SharingPartyActivity.class);
+									Bundle bundle2 = new Bundle();
+									bundle2.putString("toUser", (String) view.getTag(R.id.tag_titile));
+									intent3.putExtras(bundle2);
+									a.startActivity(intent3);
 									break;
 
 								default:
@@ -657,11 +784,12 @@ public class MyPagerAdapter extends PagerAdapter implements OnSharingMessageList
 		});
 	}
 
-	private void realTimeSharing(String tag) {// 开启实时共享
+	private void realTimeSharing(String toUser, int tag) {// 开启实时共享
 		// TODO Auto-generated method stub
 		Info info = new Info();
 		info.setFromUser(ApplicationVar.getId());
-		info.setToUser(tag);
+		info.setToUser(toUser);
+		info.setView(tag);
 		info.setInfoType(EnumInfoType.SHARING_REQ);
 		info.setReqScheme(ReqScheme.SHARE_PARTY);
 		info.setfirst(true);
@@ -746,53 +874,45 @@ public class MyPagerAdapter extends PagerAdapter implements OnSharingMessageList
 		a.startActivity(intent);
 	}
 
-	public class MapReceiver extends BroadcastReceiver {
-
-		@SuppressWarnings("deprecation")
-		@Override
-		public void onReceive(Context arg0, Intent intent) {
-			// TODO Auto-generated method stub
-			Bundle bundle = intent.getBundleExtra("info");
-			Info info = (Info) bundle.get("info");
-			mylocation = new LatLng(info.getLat(), info.getLng());
-			locData = new MyLocationData.Builder().accuracy(info.getAccuracy())
-					// 此处设置开发者获取到的方向信息，顺时针0-360
-					.direction(info.getDirection()).latitude(info.getLat()).longitude(info.getLng()).build();
-			mBaiduMap.setMyLocationData(locData);
-			mBaiduMap.setMyLocationConfigeration(new MyLocationConfiguration(
-					com.baidu.mapapi.map.MyLocationConfiguration.LocationMode.NORMAL, true, mIconLocation));
-
-			if (isFirstLoc) {
-				isFirstLoc = false;
-				startLatLng = mylocation;
-				LatLng ll = new LatLng(info.getLat(), info.getLng());
-				MapStatus.Builder builder = new MapStatus.Builder();
-				builder.target(ll).zoom(18.0f);
-				mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newMapStatus(builder.build()));
+	private String[] initFriendData() {
+		// TODO Auto-generated method stub
+		String[] users = null;
+		ArrayList<String> userList = new ArrayList<String>();
+		// 得到用户好友信息
+		Gson gson = new Gson();
+		SharedPreferences sharedPreferences = ApplicationVar.getSharedPreferences();
+		String infoString = sharedPreferences.getString("info", "{}");
+		Info info = gson.fromJson(infoString, Info.class);
+		HashMap<String, Group> groups = info.getFriendsList();
+		Iterator<Map.Entry<String, Group>> iterator = groups.entrySet().iterator();
+		while (iterator.hasNext()) {
+			Map.Entry<String, Group> entry = iterator.next();
+			Group group = entry.getValue();
+			ArrayList<User> usr = group.getItems();
+			for (User u : usr) {
+				userList.add(u.getUserid());
 			}
-
 		}
-
+		users = (String[]) userList.toArray(new String[userList.size()]);
+		return users;
 	}
 
 	private void addLine(LatLng old, LatLng neww) {
-		mBaiduMap.clear();
-
-		synchronized (mBaiduMap) {
-			RouteSimulate rs = new RouteSimulate(a, old, neww, false);
-			rs.init(mMapView, DrivingScheme.DRIVING);
-			rs.doClick(DrivingScheme.DRIVING);
-			start_marker.position(old).icon(start_descriptor);
-			mBaiduMap.addOverlay(start_marker);
-			end_marker.position(neww).icon(end_descriptor);
-			mBaiduMap.addOverlay(end_marker);
-		}
-
-		// MapStatus.Builder builder = new MapStatus.Builder();
-		// builder.target(old).zoom(18.0f);
-		// mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newMapStatus(builder.build()));
+		RouteSimulate rs = new RouteSimulate(a, old, neww, false);
+		rs.init(mMapView, DrivingScheme.WALKING);
+		rs.doClick(DrivingScheme.WALKING);
 
 		centerToMyLocation();
+	}
+
+	private void addStartMarker(LatLng start) {
+		start_marker.position(start).icon(start_descriptor);
+		mBaiduMap.addOverlay(start_marker);
+	}
+
+	private void addEndMarker(LatLng end) {
+		start_marker.position(end).icon(start_descriptor);
+		mBaiduMap.addOverlay(start_marker);
 	}
 
 	public void centerToMyLocation() {
@@ -897,8 +1017,6 @@ public class MyPagerAdapter extends PagerAdapter implements OnSharingMessageList
 		a.startActivity(intent);
 	}
 
-	
-
 	private void initHandler() {
 		// TODO Auto-generated method stub
 		handler = new Handler() {
@@ -977,8 +1095,8 @@ public class MyPagerAdapter extends PagerAdapter implements OnSharingMessageList
 		message.obj = info;
 		handler.sendMessage(message);
 	}
-	
-	public void addFriend(Info info){
+
+	public void addFriend(Info info) {
 		Log.e("add", info.getFromUser());
 		Toast.makeText(a, "hello", Toast.LENGTH_LONG).show();
 		HashMap<String, Group> friends = adapterinfo.getFriendsList();
@@ -987,7 +1105,7 @@ public class MyPagerAdapter extends PagerAdapter implements OnSharingMessageList
 		user.setFriend(info.getFromUser());
 		user.setIcon(info.getIcon());
 		Group group = friends.get(info.getGroup());
-		int i=0;
+		int i = 0;
 		if (group == null) {
 			group = new Group();
 			group.setGroupname(info.getGroup());
@@ -995,7 +1113,7 @@ public class MyPagerAdapter extends PagerAdapter implements OnSharingMessageList
 			items.add(user);
 			group.setItems(items);
 			friends.put(info.getGroup(), group);
-			
+
 			groupData.add(info.getGroup());
 			ArrayList<String> childList = new ArrayList<String>();
 			ArrayList<String> imgList = new ArrayList<String>();
@@ -1003,12 +1121,12 @@ public class MyPagerAdapter extends PagerAdapter implements OnSharingMessageList
 			imgList.add(info.getIcon());
 			childrenData.add(childList);
 			childrenImg.add(imgList);
-			
+
 		} else {
 			group.getItems().add(user);
-			
-			for(i=0;i<groupData.size();i++){
-				if(info.getGroup().equals(groupData.get(i))){
+
+			for (i = 0; i < groupData.size(); i++) {
+				if (info.getGroup().equals(groupData.get(i))) {
 					childrenData.get(i).add(info.getToUser());
 					childrenImg.get(i).add(info.getIcon());
 					break;
@@ -1018,4 +1136,225 @@ public class MyPagerAdapter extends PagerAdapter implements OnSharingMessageList
 		adapter.notifyDataSetChanged();
 	}
 
+	@Override
+	public void getSharingRes(final Info info) {
+		// TODO Auto-generated method stub
+		LogUtils.showLoG(a, "回来了1");
+		if (info.getInfoType() == EnumInfoType.SHARING_RES && info.isState() && !info.isend()
+				&& info.getReqScheme() == ReqScheme.BE_SHARED_PARTY) {// 正常情况
+			// 读取系统设置中的共享频率
+			a.runOnUiThread(new Runnable() {
+
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					sharing_ib.setBackgroundResource(R.drawable.sharing_pressed);
+				}
+			});
+
+			reqthread = new Thread(new Runnable() {
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					SharedPreferences sharedPreferences = ApplicationVar.getSharedPreferences();
+					int times = sharedPreferences.getInt("update_times", 10);
+					try {
+						LogUtils.showLoG(a, "回来了");
+						Thread.sleep(times * 1000);
+						Info info1 = new Info();
+						info1.setFromUser(ApplicationVar.getId());
+						info1.setToUser(info.getFromUser());
+						info1.setInfoType(EnumInfoType.SHARING_REQ);
+						info1.setReqScheme(ReqScheme.SHARE_PARTY);
+						// 发送广播
+						Intent broadCastIntent = new Intent("com.ambigu.rtslocation.RealTimeSharing");
+						Bundle broadCastBundle = new Bundle();
+						broadCastBundle.putSerializable("info", info1);
+						broadCastIntent.putExtra("info", broadCastBundle);
+						a.sendBroadcast(broadCastIntent);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			});
+			reqthread.start();
+		} else if (info.getReqScheme() == ReqScheme.BE_SHARED_PARTY && info.isend()
+				&& info.getInfoType() == EnumInfoType.SHARING_REQ) {// 对方请求结束共享
+			// 应该发送回复信息
+			a.runOnUiThread(new Runnable() {
+
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+
+					AlertDialog.Builder builder = new Builder(a);
+					// 设置对话框图标，可以使用自己的图片，Android本身也提供了一些图标供我们使用
+					builder.setIcon(R.drawable.ic_launcher);
+					// 设置对话框标题
+					builder.setTitle("提示信息");
+					// 设置对话框内的文本
+					builder.setMessage("对方已停止实时共享！");
+					// 设置确定按钮，并给按钮设置一个点击侦听，注意这个OnClickListener使用的是DialogInterface类里的一个内部接口
+					builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							dialog.dismiss();
+
+							sharing_ib.setBackgroundResource(R.drawable.sharing);
+							// 清除程序共享状态
+							Utils.clearSharingState(a);
+						}
+					});
+					// 使用builder创建出对话框对象
+					AlertDialog dialog = builder.create();
+					// 显示对话框
+					dialog.show();
+				}
+			});
+		} else if (info.getReqScheme() == ReqScheme.SERVER && info.getInfoType() == EnumInfoType.SHARING_RES) {// 程序异常结束共享发送最后一条信息以结束行程
+			isSharing = false;
+			if (!isShow) {
+				// 发送共享结束信息
+				Info info1 = new Info();
+				info1.setFromUser(ApplicationVar.getId());
+				info1.setToUser(info.getFromUser());
+				info1.setDrivingstate(0);
+				info1.setend(true);
+				info.setReqScheme(ReqScheme.SERVER);// 服务器端知道后设置结束
+				info1.setInfoType(EnumInfoType.SHARING_REQ);
+				// 发送广播
+				Intent broadCastIntent = new Intent("com.ambigu.rtslocation.RealTimeSharing");
+				Bundle broadCastBundle = new Bundle();
+				broadCastBundle.putSerializable("info", info1);
+				broadCastIntent.putExtra("info", broadCastBundle);
+				a.sendBroadcast(broadCastIntent);
+				a.runOnUiThread(new Runnable() {
+
+					@Override
+					public void run() {
+						// TODO Auto-generated method stub
+
+						AlertDialog.Builder builder = new Builder(a);
+						// 设置对话框图标，可以使用自己的图片，Android本身也提供了一些图标供我们使用
+						builder.setIcon(R.drawable.ic_launcher);
+						// 设置对话框标题
+						builder.setTitle("提示信息");
+						// 设置对话框内的文本
+						if (info.isfirst() && !info.isend())
+							builder.setMessage("发起共享失败，请检查网络状态或提示好友上线！");
+						else if (!info.isfirst() && info.isend())
+							builder.setMessage("共享遭遇意外情况退出！");// 这时应该写入数据库
+						// 设置确定按钮，并给按钮设置一个点击侦听，注意这个OnClickListener使用的是DialogInterface类里的一个内部接口
+						builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+							@Override
+							public void onClick(DialogInterface dialog, int which) {
+								dialog.dismiss();
+
+								sharing_ib.setBackgroundResource(R.drawable.sharing);
+								// 清除程序共享状态
+								Utils.clearSharingState(a);
+							}
+						});
+
+						// 使用builder创建出对话框对象
+						AlertDialog dialog = builder.create();
+						// 显示对话框
+						dialog.show();
+					}
+				});
+				isShow = true;
+			}
+		} else if (!info.isState() && info.getInfoType() == EnumInfoType.SHARING_RES
+				&& info.getReqScheme() == ReqScheme.BE_SHARED_PARTY) {
+			// 对方拒绝请求
+			a.runOnUiThread(new Runnable() {
+
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+
+					AlertDialog.Builder builder = new Builder(a);
+					// 设置对话框图标，可以使用自己的图片，Android本身也提供了一些图标供我们使用
+					builder.setIcon(R.drawable.ic_launcher);
+					// 设置对话框标题
+					builder.setTitle("提示信息");
+					// 设置对话框内的文本
+					builder.setMessage("对方拒绝您的请求！");
+					// 设置确定按钮，并给按钮设置一个点击侦听，注意这个OnClickListener使用的是DialogInterface类里的一个内部接口
+					builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							dialog.dismiss();
+							sharing_ib.setBackgroundResource(R.drawable.sharing);
+							// 清除程序共享状态
+							Utils.clearSharingState(a);
+						}
+					});
+
+					// 使用builder创建出对话框对象
+					AlertDialog dialog = builder.create();
+					// 显示对话框
+					dialog.show();
+				}
+			});
+		} else if (info.isState() && info.isend() && info.getReqScheme() == ReqScheme.BE_SHARED_PARTY && info.isState()
+				&& info.getInfoType() == EnumInfoType.SHARING_RES) {
+			// 对方确认停止发送信息
+			reqthread.interrupt();// 不应该再发了，即使刚刚仍有信息在睡眠中未发出去
+		}
+	}
+
+	public class SharingReceiver extends BroadcastReceiver {
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			LogUtils.showLoG(a, "收到了");
+			Bundle bundle = intent.getBundleExtra("info");
+			Info info = (Info) bundle.get("info");
+			double lat = info.getLat();
+			double lng = info.getLng();
+			LatLng latLng = new LatLng(lat, lng);
+			if (info.isfirst()) {
+				oldLatlng = latLng;
+				addStartMarker(oldLatlng);
+			} else {
+				addLine(oldLatlng, latLng);
+				oldLatlng = latLng;
+			}
+			if (info.isend()) {
+				addEndMarker(oldLatlng);
+			}
+		}
+
+	}
+
+	public class MapReceiver extends BroadcastReceiver {
+
+		@SuppressWarnings("deprecation")
+		@Override
+		public void onReceive(Context arg0, Intent intent) {
+			// TODO Auto-generated method stub
+			Bundle bundle = intent.getBundleExtra("info");
+			Info info = (Info) bundle.get("info");
+			mylocation = new LatLng(info.getLat(), info.getLng());
+			locData = new MyLocationData.Builder().accuracy(info.getAccuracy())
+					// 此处设置开发者获取到的方向信息，顺时针0-360
+					.direction(info.getDirection()).latitude(info.getLat()).longitude(info.getLng()).build();
+			mBaiduMap.setMyLocationData(locData);
+			mBaiduMap.setMyLocationConfigeration(new MyLocationConfiguration(
+					com.baidu.mapapi.map.MyLocationConfiguration.LocationMode.NORMAL, true, mIconLocation));
+
+			if (isFirstLoc) {
+				isFirstLoc = false;
+				startLatLng = mylocation;
+				LatLng ll = new LatLng(info.getLat(), info.getLng());
+				MapStatus.Builder builder = new MapStatus.Builder();
+				builder.target(ll).zoom(18.0f);
+				mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newMapStatus(builder.build()));
+			}
+
+		}
+
+	}
 }

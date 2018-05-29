@@ -37,7 +37,6 @@ import android.widget.Toast;
 
 public class RegisterActivity extends Activity implements OnRegisterListener {
 
-	private CustomVideoView videoview;
 	private EditText et_usrid, et_usrpwd, et_usrrepwd, et_usrbirthday, et_age, et_email, et_adress;
 	RadioGroup radioGroup;
 	private Button btn_enter, btn_selecticon;
@@ -55,7 +54,6 @@ public class RegisterActivity extends Activity implements OnRegisterListener {
 	}
 
 	private void initView() {
-		videoview = (CustomVideoView) findViewById(R.id.videoview);
 
 		// 初始化控件
 		et_usrid = (EditText) findViewById(R.id.register_userid);
@@ -68,18 +66,8 @@ public class RegisterActivity extends Activity implements OnRegisterListener {
 		radioGroup = (RadioGroup) findViewById(R.id.radioGroup_sex);
 		btn_enter = (Button) findViewById(R.id.btn_enter);
 		btn_selecticon = (Button) findViewById(R.id.btn_select);
-
-		videoview.setVideoURI(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.sport));
-
-		// 播放
-		videoview.start();
-		// 循环播放
-		videoview.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-			@Override
-			public void onCompletion(MediaPlayer mediaPlayer) {
-				videoview.start();
-			}
-		});
+		
+		((RadioButton)radioGroup.getChildAt(0)).setChecked(true);
 
 		btn_selecticon.setOnClickListener(new OnClickListener() {
 
@@ -142,8 +130,6 @@ public class RegisterActivity extends Activity implements OnRegisterListener {
 	protected void onRestart() {
 		// TODO Auto-generated method stub
 		super.onRestart();
-
-		videoview.start();
 	}
 
 	@Override
@@ -156,19 +142,6 @@ public class RegisterActivity extends Activity implements OnRegisterListener {
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		// 获取图片路径
-
-		videoview.start();
-//		if (requestCode == IMAGE && resultCode == Activity.RESULT_OK && data != null) {
-//			Uri selectedImage = data.getData();
-//			String[] filePathColumns = { MediaStore.Images.Media.DATA };
-//			Cursor c = getContentResolver().query(selectedImage, filePathColumns, null, null, null);
-//			c.moveToFirst();
-//			int columnIndex = c.getColumnIndex(filePathColumns[0]);
-//			imagePath = c.getString(columnIndex);
-//			Toast.makeText(this, imagePath, Toast.LENGTH_LONG).show();
-//			showImage(imagePath);
-//			c.close();
-//		}
 		if (resultCode != Activity.RESULT_OK) {
 			return;
 		}
@@ -224,12 +197,19 @@ public class RegisterActivity extends Activity implements OnRegisterListener {
 	public void callbackToRegister(Info info) {
 		// TODO Auto-generated method stub
 		if(info.isState()){
-			final AlertDialog.Builder normalDialog = new AlertDialog.Builder(this);
-			normalDialog.setIcon(R.drawable.ic_launcher);
-			normalDialog.setTitle("提示信息");
-			normalDialog.setMessage("注册成功");
-			normalDialog.setPositiveButton("确定", null);
-			normalDialog.show();
+			runOnUiThread(new Runnable() {
+				
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					final AlertDialog.Builder normalDialog = new AlertDialog.Builder(RegisterActivity.this);
+					normalDialog.setIcon(R.drawable.ic_launcher);
+					normalDialog.setTitle("提示信息");
+					normalDialog.setMessage("注册成功");
+					normalDialog.setPositiveButton("确定", null);
+					normalDialog.show();
+				}
+			});
 		}
 	}
 

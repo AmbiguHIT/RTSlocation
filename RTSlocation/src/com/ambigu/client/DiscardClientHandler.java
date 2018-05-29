@@ -11,8 +11,11 @@ import com.ambigu.listener.OnDeleteSharingHistory;
 import com.ambigu.listener.OnGetSelfLocationListener;
 import com.ambigu.listener.OnMessageListener;
 import com.ambigu.listener.OnMessageSendState;
+import com.ambigu.listener.OnModifyIconlistener;
+import com.ambigu.listener.OnModifyInfoListener;
 import com.ambigu.listener.OnReceiveSharingMessageListener;
 import com.ambigu.listener.OnRegisterListener;
+import com.ambigu.listener.OnResetPwdListener;
 import com.ambigu.listener.OnSharingMessageListener;
 import com.ambigu.listener.OnSharingResListener;
 import com.ambigu.listener.onLoginResult;
@@ -44,6 +47,9 @@ public class DiscardClientHandler extends SimpleChannelInboundHandler<String> {
 	private OnDeleteFriendListener onDeleteFriendListener;
 	private OnDeleteSharingHistory onDeleteSharingHistory;
 	private OnDeleteLocationMessageListener onDeleteLocationMessageListener;
+	private OnModifyInfoListener onModifyInfoListener;
+	private OnResetPwdListener onResetPwdListener;
+	private OnModifyIconlistener onModifyIconlistener;
 
 	private DiscardClientHandler() {
 		// TODO Auto-generated constructor stub
@@ -112,7 +118,6 @@ public class DiscardClientHandler extends SimpleChannelInboundHandler<String> {
 			onAuthNoteListener.getAuthNote(reqInfo);
 			break;
 		case DEL_AUTH_NOTE:
-			Log.e("回复信息", msg);
 			onDelAuthInfoListener.delAuthInfoState(reqInfo);
 			break;
 		case DEL_FRIEND:
@@ -122,7 +127,18 @@ public class DiscardClientHandler extends SimpleChannelInboundHandler<String> {
 			onDeleteSharingHistory.deleteHistory(reqInfo);
 			break;
 		case DEL_LOCATION_MES:
+			Log.e("回复信息", msg);
 			onDeleteLocationMessageListener.deleteLocation(reqInfo);
+			break;
+		case MODIFY_INFO:
+			onModifyInfoListener.modifyInfo(reqInfo);
+			break;
+		case RESET_PWD:
+			onResetPwdListener.resetPwd(reqInfo);
+			break;
+		case MODIFY_ICON:
+			Log.e("回复信息", msg);
+			onModifyIconlistener.modifyIcon(reqInfo);
 			break;
 		default:
 			break;
@@ -133,10 +149,21 @@ public class DiscardClientHandler extends SimpleChannelInboundHandler<String> {
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
 		// TODO Auto-generated method stub
-		cause.printStackTrace();
-		Log.e("连接", "连接失败");
+		Log.e("连接", cause.getMessage());
+		Log.e("连接", "连接失败1231");
 	}
 	
+	public void setOnModifyIconlistener(OnModifyIconlistener onModifyIconlistener){
+		this.onModifyIconlistener=onModifyIconlistener;
+	}
+	
+	public void setOnResetPwdListener(OnResetPwdListener onResetPwdListener){
+		this.onResetPwdListener=onResetPwdListener;
+	}
+	
+	public void setOnModifyInfoListener(OnModifyInfoListener onModifyInfoListener) {
+		this.onModifyInfoListener=onModifyInfoListener;
+	}
 	public void setOnDeleteLocationMessageListener(OnDeleteLocationMessageListener onDeleteLocationMessageListener){
 		this.onDeleteLocationMessageListener=onDeleteLocationMessageListener;
 	}

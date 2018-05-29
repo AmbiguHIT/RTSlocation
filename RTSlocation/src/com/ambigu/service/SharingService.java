@@ -65,11 +65,6 @@ public class SharingService extends Service implements SensorEventListener, OnMe
 	Intent intent = null;
 	Info info = null;
 	public boolean f = true;
-	private static Handler ip_Handler;
-	private static boolean sendable = true;
-	private double oldlat;
-	private double oldlng;
-	private boolean isFirst = true;
 	private float mCurrentX;
 	private volatile boolean isAuth;
 
@@ -81,7 +76,6 @@ public class SharingService extends Service implements SensorEventListener, OnMe
 	private Thread authThread;
 	private SharingReceiver sharingReceiver;
 	private static double distance = 0;
-	private LatLng oldLatlng = null;
 	private boolean isSharing = false;
 	private int update_times;
 
@@ -129,6 +123,7 @@ public class SharingService extends Service implements SensorEventListener, OnMe
 							reinfo.setState(true);
 							reinfo.setfirst(true);
 							reinfo.setend(false);
+							reinfo.setView(info.getView());
 							reinfo.setLat(info.getLat());
 							reinfo.setLng(info.getLng());
 							reinfo.setCity_now(info.getCity_now());
@@ -152,6 +147,7 @@ public class SharingService extends Service implements SensorEventListener, OnMe
 							reinfo.setState(false);
 							reinfo.setfirst(true);
 							reinfo.setend(true);
+							reinfo.setView(info.getView());
 							reinfo.setLat(info.getLat());
 							reinfo.setLng(info.getLng());
 							reinfo.setCity_now(info.getCity_now());
@@ -180,13 +176,14 @@ public class SharingService extends Service implements SensorEventListener, OnMe
 							reinfo.setReqScheme(ReqScheme.BE_SHARED_PARTY);
 							reinfo.setInfoType(EnumInfoType.SHARING_RES);
 							reinfo.setState(true);
+							reinfo.setView(info.getView());
 							reinfo.setLat(info.getLat());
 							reinfo.setLng(info.getLng());
 							reinfo.setCity_now(info.getCity_now());
 							reinfo.setTime(DateUtil.getTime());
 							reinfo.setend(true);
 							RTSClient.writeAndFlush(reinfo);
-							isShow=false;
+							isShow = false;
 						} else {
 							Log.e("发送广播", info.toString());
 							Info reinfo = new Info();
@@ -195,6 +192,7 @@ public class SharingService extends Service implements SensorEventListener, OnMe
 							reinfo.setReqScheme(ReqScheme.BE_SHARED_PARTY);
 							reinfo.setInfoType(EnumInfoType.SHARING_RES);
 							reinfo.setState(true);
+							reinfo.setView(info.getView());
 							reinfo.setLat(info.getLat());
 							reinfo.setLng(info.getLng());
 							reinfo.setCity_now(info.getCity_now());
@@ -244,12 +242,12 @@ public class SharingService extends Service implements SensorEventListener, OnMe
 		SharedPreferences sharedPreferences = getSharedPreferences("rtslocation", Context.MODE_PRIVATE);
 		boolean isAuth = sharedPreferences.getBoolean("isAuth", false);
 		inviupdate_times = sharedPreferences.getInt("inviupdate_times", 10);// 权限共享
-		update_times=sharedPreferences.getInt("update_times", 10);
+		update_times = sharedPreferences.getInt("update_times", 10);
 		initLocation();
 		Log.e("isAuth", isAuth + "");
+		initAuthSharing();
 		if (isAuth) {
 			this.isAuth = true;
-			initAuthSharing();
 		}
 		DiscardClientHandler.getInstance().setOnReceiveSharingMessageListener(this);
 	}
@@ -289,7 +287,8 @@ public class SharingService extends Service implements SensorEventListener, OnMe
 					}
 
 					try {
-						Thread.sleep(inviupdate_times * 1000);
+						if (!isAuth)
+							Thread.sleep(inviupdate_times * 1000);
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -303,13 +302,13 @@ public class SharingService extends Service implements SensorEventListener, OnMe
 	@Override
 	public void onTaskRemoved(Intent rootIntent) {
 		// TODO Auto-generated method stub
-		Info info=new Info();
+		Info info = new Info();
 		info.setInfoType(EnumInfoType.LOGIN_OUT);
 		info.setFromUser(ApplicationVar.getId());
 		info.setState(false);
 		RTSClient.writeAndFlush(info);
-		Log.e("kill_Process","true");
-		android.os.Process.killProcess(android.os.Process.myPid()); 
+		Log.e("kill_Process", "true");
+		android.os.Process.killProcess(android.os.Process.myPid());
 		super.onTaskRemoved(rootIntent);
 	}
 
@@ -469,12 +468,12 @@ public class SharingService extends Service implements SensorEventListener, OnMe
 	@Override
 	public void dealMessage(final Info info) {
 		// TODO Auto-generated method stub
-		
-		if(isSharing){//已经在共享状态
-			
+
+		if (isSharing) {// 已经在共享状态
+
 			return;
 		}
-		
+
 		if (info.getInfoType() == EnumInfoType.SHARING_REQ && info.getReqScheme() == ReqScheme.SHARE_PARTY) {
 			Message message = Message.obtain();
 			message.obj = info;
@@ -490,16 +489,18 @@ public class SharingService extends Service implements SensorEventListener, OnMe
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			
-			boolean clearSharingState=intent.getBooleanExtra("clearSharingState", false);
-			if(clearSharingState){
-				isSharing=false;
-				return;//这条广播信息不需要发送任何信息
+
+			boolean clearSharingState = intent.getBooleanExtra("clearSharingState", false);
+			if (clearSharingState) {
+				Log.e("isSharing", isSharing + "");
+				isSharing = false;
+				isShow = false;
+				return;// 这条广播信息不需要发送任何信息
 			}
 
 			Bundle bundle = intent.getBundleExtra("info");
 			Info info = (Info) bundle.get("info");
-			
+
 			BDLocation location = mLocationClient.getLastKnownLocation();
 			info.setLat(location.getLatitude());
 			info.setLng(location.getLongitude());
@@ -532,11 +533,18 @@ public class SharingService extends Service implements SensorEventListener, OnMe
 					distance = 0;
 				}
 			} else {
-				distance+= info.getSpeed()*(double)update_times/3600;
+				distance += info.getSpeed() * (double) update_times / 3600;
 			}
 			isSharing = true;
 			info.setDistance(distance + "");
 			RTSClient.writeAndFlush(info);
+
+			// 返回activity数据
+			Intent broadCastIntent = new Intent("com.ambigu.service.ReturnLocation");
+			Bundle broadCastBundle = new Bundle();
+			broadCastBundle.putSerializable("info", info);
+			broadCastIntent.putExtra("info", broadCastBundle);
+			sendBroadcast(broadCastIntent);
 		}
 
 	}

@@ -7,6 +7,7 @@ import com.ambigu.navi.NaviGuideActivity;
 import com.ambigu.route.RouteSimulate;
 import com.ambigu.util.ApplicationVar;
 import com.ambigu.util.EnumInfoType;
+import com.ambigu.util.Utils;
 import com.baidu.mapapi.SDKInitializer;
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.BitmapDescriptorFactory;
@@ -49,6 +50,8 @@ public class SharingActivity extends Activity {
 	LatLng oldLatLng = null;
 
 	private MapReceiver receiver;// 广播
+	public double lat;
+	public double lng;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -138,6 +141,11 @@ public class SharingActivity extends Activity {
 							broadCastBundle.putSerializable("info", info1);
 							broadCastIntent.putExtra("info", broadCastBundle);
 							sendBroadcast(broadCastIntent);
+							
+							LatLng latLng = new LatLng(lat, lng);
+							addOverLay(latLng);
+							
+							Utils.clearSharingState(SharingActivity.this);
 				        }
 				});
 				builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
@@ -176,6 +184,7 @@ public class SharingActivity extends Activity {
 		super.onDestroy();
 		// 在activity执行onDestroy时执行mMapView.onDestroy()，实现地图生命周期管理
 		mMapView.onDestroy();
+		finish();
 	}
 
 	@Override
@@ -233,8 +242,8 @@ public class SharingActivity extends Activity {
 			Bundle bundle = intent.getBundleExtra("info");
 			Info info = (Info) bundle.get("info");
 			if(isOnDriving){
-				double lat = info.getLat();
-				double lng = info.getLng();
+				lat = info.getLat();
+				lng = info.getLng();
 				Log.e("cast", info.toString());
 				LatLng latLng = new LatLng(lat, lng);
 				

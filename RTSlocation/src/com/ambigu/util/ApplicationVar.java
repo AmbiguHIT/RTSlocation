@@ -14,12 +14,12 @@ public class ApplicationVar {
 	/***
 	 * 4.4以上(也就是kitkat以上)的版本,当然也包括最新出的5.0棒棒糖
 	 */
-	public static final int KITKAT_ABOVE = 1;
+	public static final int KITKAT_ABOVE = 2;
 	
 	/***
 	 * 裁剪图片成功后返回
 	 */
-	public static final int INTENT_CROP = 2;
+	public static final int INTENT_CROP = 3;
 	static SharedPreferences sharedPreferences = null;
 	
 

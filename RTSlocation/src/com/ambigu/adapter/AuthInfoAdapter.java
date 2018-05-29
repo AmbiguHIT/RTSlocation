@@ -140,57 +140,59 @@ public class AuthInfoAdapter extends BaseExpandableListAdapter implements Header
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
-				// 确定删除弹框
-				AlertDialog.Builder builder = new Builder(context);
-				// 设置对话框图标，可以使用自己的图片，Android本身也提供了一些图标供我们使用
-				builder.setIcon(R.drawable.ic_launcher);
-				// 设置对话框标题
-				builder.setTitle("提示信息");
-				// 设置对话框内的文本
-				builder.setMessage("确定删除这些记录吗？");
-				// 设置确定按钮，并给按钮设置一个点击侦听，注意这个OnClickListener使用的是DialogInterface类里的一个内部接口
-				builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						dialog.dismiss();
-						HashMap<String, ArrayList<AuthNode>> selects = new HashMap<String, ArrayList<AuthNode>>();
-						for (int i = 0; i < groups.size(); i++) {// 分组
-							ArrayList<AuthNode> authNodes = new ArrayList<AuthNode>();
-							String groupname = groups.get(i);
-							selects.put(groupname, authNodes);
-							HashMap<Integer, Boolean> maps = isChecked.get(i);
-							Iterator<Map.Entry<Integer, Boolean>> iterator = maps.entrySet().iterator();
-							while (iterator.hasNext()) {
-								Map.Entry<Integer, Boolean> entry = iterator.next();
-								if (entry.getValue()) {// 此项被选中
-									int childpos = entry.getKey();
-									authNodes.add(childNodes.get(groupname).get(childpos));
+				if(isMulChoice){
+					// 确定删除弹框
+					AlertDialog.Builder builder = new Builder(context);
+					// 设置对话框图标，可以使用自己的图片，Android本身也提供了一些图标供我们使用
+					builder.setIcon(R.drawable.ic_launcher);
+					// 设置对话框标题
+					builder.setTitle("提示信息");
+					// 设置对话框内的文本
+					builder.setMessage("确定删除这些记录吗？");
+					// 设置确定按钮，并给按钮设置一个点击侦听，注意这个OnClickListener使用的是DialogInterface类里的一个内部接口
+					builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							dialog.dismiss();
+							HashMap<String, ArrayList<AuthNode>> selects = new HashMap<String, ArrayList<AuthNode>>();
+							for (int i = 0; i < groups.size(); i++) {// 分组
+								ArrayList<AuthNode> authNodes = new ArrayList<AuthNode>();
+								String groupname = groups.get(i);
+								selects.put(groupname, authNodes);
+								HashMap<Integer, Boolean> maps = isChecked.get(i);
+								Iterator<Map.Entry<Integer, Boolean>> iterator = maps.entrySet().iterator();
+								while (iterator.hasNext()) {
+									Map.Entry<Integer, Boolean> entry = iterator.next();
+									if (entry.getValue()) {// 此项被选中
+										int childpos = entry.getKey();
+										authNodes.add(childNodes.get(groupname).get(childpos));
+									}
 								}
 							}
+							Info info = new Info();
+							info.setFromUser(ApplicationVar.getId());
+							info.setInfoType(EnumInfoType.DEL_AUTH_NOTE);
+							info.setState(false);
+							info.setAuthNodes(selects);// 删除这些
+							RTSClient.writeAndFlush(info);
+							isMulChoice = false;
+							isAllowOption = false;
+							notifyDataSetChanged();// 此时不应再进行操作
 						}
-						Info info = new Info();
-						info.setFromUser(ApplicationVar.getId());
-						info.setInfoType(EnumInfoType.DEL_AUTH_NOTE);
-						info.setState(false);
-						info.setAuthNodes(selects);// 删除这些
-						RTSClient.writeAndFlush(info);
-						isMulChoice = false;
-						isAllowOption = false;
-						notifyDataSetChanged();// 此时不应再进行操作
-					}
-				});
-				builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						dialog.dismiss();
+					});
+					builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							dialog.dismiss();
 
-					}
-				});
+						}
+					});
 
-				// 使用builder创建出对话框对象
-				AlertDialog dialog = builder.create();
-				// 显示对话框
-				dialog.show();
+					// 使用builder创建出对话框对象
+					AlertDialog dialog = builder.create();
+					// 显示对话框
+					dialog.show();
+				}
 			}
 		});
 
@@ -199,16 +201,18 @@ public class AuthInfoAdapter extends BaseExpandableListAdapter implements Header
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
-				isMulChoice = false;
-				for (int i = 0; i < groups.size(); i++) {
-					String groupname = groups.get(i);
-					int size = childNodes.get(groupname).size();
-					HashMap<Integer, Boolean> maps = isChecked.get(i);
-					for (int j = 0; j < size; j++) {
-						maps.put(j, false);
+				if(isMulChoice){
+					for (int i = 0; i < groups.size(); i++) {
+						String groupname = groups.get(i);
+						int size = childNodes.get(groupname).size();
+						HashMap<Integer, Boolean> maps = isChecked.get(i);
+						for (int j = 0; j < size; j++) {
+							maps.put(j, false);
+						}
 					}
+					notifyDataSetChanged();
 				}
-				notifyDataSetChanged();
+				isMulChoice = false;
 			}
 		});
 

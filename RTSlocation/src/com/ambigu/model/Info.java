@@ -7,6 +7,8 @@ import java.util.HashMap;
 
 import com.ambigu.util.EnumInfoType;
 
+import android.R.integer;
+
 /**
  * 消息对象
  * 
@@ -36,6 +38,8 @@ public class Info implements Serializable {
 	private String email;
 	private String adress;
 	private String icon;
+	
+	private int view;//0--view1,1--view2,2--view3
 	
 
 	// 好友列表
@@ -385,5 +389,13 @@ public class Info implements Serializable {
 
 	public void setFromMe(boolean isFromMe) {
 		this.isFromMe = isFromMe;
+	}
+
+	public int getView() {
+		return view;
+	}
+
+	public void setView(int view) {
+		this.view = view;
 	}
 }
